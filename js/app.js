@@ -5,6 +5,9 @@ import { flushAll } from './autosave.js';
 import { todayStr } from './dates.js';
 import { openDb } from './db.js';
 import { h } from './dom.js';
+import { hideCover, showCover, showLockScreen } from './lockscreen.js';
+import { shouldRelock } from './lockpolicy.js';
+import { lockState, refreshLockState } from './lockstate.js';
 import { initNavigation, setCurrentHash, settleScroll } from './navigation.js';
 import { parseRoute, tabHashOf } from './routes.js';
 import { getSettings } from './settings.js';
@@ -20,8 +23,14 @@ let db = null;
 let current = null; // { destroy }
 let renderedToday = null; // giorno mostrato dalla pagina «Oggi», per accorgersi della mezzanotte
 let renderToken = 0;
+let locked = false; // la schermata di blocco è aperta: nessun contenuto del diario nella pagina
+let hiddenAt = null; // quando l'app è andata in background
 
 async function render() {
+  if (locked) {
+    settleScroll();
+    return;
+  }
   const token = ++renderToken;
   const today = todayStr();
   const route = parseRoute(location.hash, today);
@@ -30,7 +39,7 @@ async function render() {
   await flushAll();
   await current?.destroy();
   current = null;
-  if (token !== renderToken) return; // nel frattempo si è cambiata di nuovo schermata
+  if (token !== renderToken || locked) return; // nel frattempo si è cambiata schermata o si è bloccata l'app
 
   // un giorno aperto dall'archivio lascia acceso «Archivio»
   const fromArchive = history.state?.depth >= 3 && history.state?.parent === 'archive';
@@ -52,11 +61,34 @@ async function render() {
     view.replaceChildren(h('p', { class: 'fatal' }, 'Non riesco a mostrare questa pagina. Riprova a riaprire l’app.'));
   }
   if (token !== renderToken) return;
+  if (locked) {
+    view.replaceChildren(); // l'app si è bloccata mentre si disegnava: niente contenuto
+    return;
+  }
   settleScroll();
   void view.offsetWidth; // riavvia la breve dissolvenza
   view.classList.add('view-in');
 }
+
+// Toglie il diario dalla pagina e chiede di sbloccare; poi ridisegna la schermata corrente.
+async function lockApp() {
+  if (locked) return;
+  locked = true;
+  await flushAll();
+  document.body.classList.remove('writing');
+  document.activeElement?.blur?.();
+  await current?.destroy();
+  current = null;
+  view.replaceChildren();
+  await showLockScreen(await getSettings(db));
+  locked = false;
+  hiddenAt = null;
+  document.documentElement.classList.remove('boot-lock');
+  await render();
+}
+
 function showFatal(message) {
+  document.documentElement.classList.remove('boot-lock');
   view.replaceChildren(h('section', { class: 'page' }, h('h1', { class: 'page-title' }, 'Qualcosa non va'), h('p', {}, message)));
 }
 
@@ -68,18 +100,32 @@ async function start() {
     showFatal('Non riesco ad aprire l’archivio del diario. Se stai usando la navigazione privata, riapri l’app in una finestra normale.');
     return;
   }
-  applyAppearance(await getSettings(db));
+  const settings = await getSettings(db);
+  applyAppearance(settings);
+  refreshLockState(settings);
   initToolbar();
 
-  // Dati al sicuro quando si lascia l'app o si cambia scheda.
+  // Dati al sicuro quando si lascia l'app o si cambia scheda; con il blocco attivo si copre il contenuto.
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') flushAll();
-    else if (renderedToday && renderedToday !== todayStr()) render(); // è passata la mezzanotte
+    if (document.visibilityState === 'hidden') {
+      flushAll();
+      if (lockState.active && !locked) {
+        hiddenAt = Date.now();
+        showCover(); // nasconde subito il contenuto (anche nell'anteprima delle app recenti)
+      }
+    } else if (lockState.active && !locked && hiddenAt !== null) {
+      if (shouldRelock({ lockEnabled: true, hiddenAt, now: Date.now() })) lockApp();
+      else hideCover();
+      hiddenAt = null;
+    } else if (renderedToday && renderedToday !== todayStr()) {
+      render(); // è passata la mezzanotte
+    }
   });
   window.addEventListener('pagehide', () => flushAll());
   initNavigation({ render });
 
-  await render();
+  if (lockState.active) await lockApp();
+  else await render();
 
   navigator.storage?.persist?.().catch(() => {});
   registerServiceWorker();

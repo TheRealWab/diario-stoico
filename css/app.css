@@ -501,6 +501,101 @@ a.cal-day:active { background: var(--line); }
 .search-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .search-status { margin: var(--space-3) 0 var(--space-2); }
 mark { padding: 0 0.12em; border-radius: 0.2em; background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--ink); }
+/* ---------- blocco ---------- */
+
+body.lock-open { overflow: hidden; }
+.boot-lock #view, .boot-lock .tabbar { visibility: hidden; }
+
+.lock, .cover {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--bg);
+  color: var(--ink);
+}
+.cover { display: none; place-items: center; }
+.cover.is-on { display: grid; }
+
+.lock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: calc(var(--space-7) + env(safe-area-inset-top)) var(--gutter) calc(var(--space-6) + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  animation: view-in var(--dur) var(--ease);
+}
+.lock.is-leaving { opacity: 0; transition: opacity 200ms var(--ease); pointer-events: none; }
+
+.lock-top { text-align: center; max-width: 24rem; }
+.lock-brand {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 500;
+}
+.lock-top .lock-brand::after {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 2px;
+  margin: var(--space-3) auto var(--space-4);
+  background: var(--accent);
+}
+.lock-quote {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  text-wrap: balance;
+}
+
+.lock-panel { display: grid; justify-items: center; gap: var(--space-4); width: 100%; max-width: 20rem; }
+.btn-wide { width: 100%; min-height: 3.5rem; }
+.link-button {
+  min-height: var(--tap);
+  padding: 0 var(--space-4);
+  border: 0;
+  background: transparent;
+  color: var(--accent-text);
+  font-size: 0.9375rem;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.pinpad { display: grid; justify-items: center; gap: var(--space-3); width: 100%; outline: none; }
+.pin-dots { display: flex; justify-content: center; gap: var(--space-3); min-height: 1.25rem; }
+.pin-dot { width: 0.875rem; height: 0.875rem; border: 1.5px solid var(--ink-soft); border-radius: 50%; transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease); }
+.pin-dot.is-filled { background: var(--accent); border-color: var(--accent); }
+.pin-message { min-height: 1.5rem; margin: 0; font-size: 0.9375rem; text-align: center; color: var(--ink-soft); }
+.pin-message.is-error { color: var(--danger-text); }
+.pin-keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); width: 100%; }
+.pin-key {
+  display: grid;
+  place-items: center;
+  min-height: 3.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 1.5rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  transition: background-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.pin-key:active:not(:disabled) { background: var(--line); transform: scale(0.97); }
+.pin-key:disabled { opacity: 0.4; }
+.pin-key-ok { background: var(--accent-fill); border-color: transparent; color: var(--on-accent); font-size: 1.125rem; font-weight: 600; }
+.pin-key-ok:active:not(:disabled) { background: var(--accent-fill); filter: brightness(0.92); }
+.pin-key-back .icon { width: 1.5rem; height: 1.5rem; }
+
+.dialog-pin { width: min(92vw, 22rem); }
+.dialog-text { margin: 0 0 var(--space-4); color: var(--ink-soft); font-size: 0.9375rem; }
+.dialog-pin .dialog-actions { margin-top: var(--space-3); }
+
 /* ---------- movimento ridotto ---------- */
 
 @media (prefers-reduced-motion: reduce) {

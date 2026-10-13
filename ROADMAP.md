@@ -6,7 +6,7 @@ Si passa alla fase successiva solo dopo qualche giorno di uso reale sul telefono
 | Fase | Contenuto | Stato |
 | --- | --- | --- |
 | 1 | Il diario che funziona: pagina «Oggi», editor, salvataggio automatico, tema carta/scuro, PWA offline, export/import JSON | **Costruita** — in attesa della prova sul telefono (tag `fase-1`) |
-| 2 | Blocco con impronta (WebAuthn) + PIN, calendario mensile, vai a data, cronologia, modalità lettura, ricerca | Da fare |
+| 2 | Blocco con impronta (WebAuthn) + PIN, calendario mensile, vai a data, cronologia, modalità lettura, ricerca | **Costruita** (versione 2.0) — in attesa della prova sul telefono (tag `fase-2`) |
 | 3 | Obiettivi (giorno, settimana, mese, anno), striscia «Oggi» spuntabile, cascata, chiusura guidata | Da fare |
 | 4 | Moduli attivabili (premeditatio, esame serale, virtù, dicotomia del controllo, umore, negative visualization, citazione) e moduli personalizzati | Da fare |
 | 5 | Ricorrenze, revisioni settimanali e mensili, menzione degli obiettivi nelle voci, export Markdown | Da fare |
@@ -18,6 +18,14 @@ Fase 1 pubblicata e installata sull'S25 il 13 ottobre 2026. Prima della Fase 2 s
 
 - Corretti: «null» nell'avviso del backup, cursore coperto dalla barra di formattazione, tasto «indietro» con conferma di uscita.
 - Pulsante «Aggiorna» dell'avviso di aggiornamento ridisegnato (era poco gradevole).
+
+## Scelte concordate (Fase 2)
+
+- Con l'impronta attiva, quella è lo sblocco normale; il PIN è solo la riserva (se l'impronta non viene riconosciuta o non c'è).
+- Il diario si richiude dopo più di un minuto in background; il contenuto è coperto appena si esce dall'app.
+- PIN e impronta non finiscono nei backup e l'importazione non li tocca.
+- «Esci» dal tasto indietro non può chiudere una PWA: si mostra «Premi ancora indietro per uscire».
+- Nessuna migrazione: lo schema del database resta alla versione 1.
 
 ## Scelte concordate (Fase 1)
 

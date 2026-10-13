@@ -6,8 +6,11 @@ import { daysAgoLabel, formatDayMonthYear, todayStr } from '../dates.js';
 import { h } from '../dom.js';
 import { getSettings, saveSettings } from '../settings.js';
 import { flushAll } from '../autosave.js';
+import { changePin, disableLock, enableLock, toggleFingerprint } from '../lockflow.js';
+import { isLockActive } from '../lockstate.js';
 import { confirmDialog, messageDialog, showDialog, toast } from '../ui.js';
 import { APP_VERSION } from '../util.js';
+import { fingerprintAvailable } from '../webauthn.js';
 
 const THEME_OPTIONS = [['carta', 'Carta'], ['scuro', 'Scuro'], ['sistema', 'Sistema']];
 const FONT_OPTIONS = [['serif', 'Serif (da libro)'], ['sans', 'Sans (pulito)']];
@@ -36,6 +39,7 @@ function segmented({ legend, options, value, onChange }) {
 export async function mountSettings({ db, container }) {
   let settings = await getSettings(db);
   const persisted = (await navigator.storage?.persisted?.()) ?? false;
+  const fingerprintOffered = await fingerprintAvailable();
 
   async function change(patch) {
     try {
@@ -133,6 +137,43 @@ export async function mountSettings({ db, container }) {
     }
   }
 
+  // ----- blocco -----
+  const lockOn = isLockActive(settings);
+  const rerender = () => mountSettings({ db, container });
+  const run = (flow) => async () => {
+    try {
+      await flow({ db, doExport });
+    } catch (err) {
+      console.error(err);
+      toast('Qualcosa non ha funzionato. Il blocco non è stato modificato.');
+    }
+    await rerender();
+  };
+
+  function lockGroup() {
+    const status = lockOn
+      ? settings.webauthn
+        ? 'Attivo: si apre con l’impronta; il PIN è la riserva se l’impronta non viene riconosciuta.'
+        : 'Attivo: si apre con il PIN.'
+      : 'Disattivato. Attivandolo, il diario chiede l’impronta o il PIN quando lo apri.';
+    return h(
+      'section',
+      { class: 'group' },
+      h('h2', {}, 'Blocco'),
+      h('p', { class: 'hint' }, status),
+      lockOn
+        ? [
+            h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn btn-secondary', onclick: run(changePin) }, 'Cambia PIN')),
+            fingerprintOffered || settings.webauthn
+              ? h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn btn-secondary', onclick: run(toggleFingerprint) }, settings.webauthn ? 'Non usare più l’impronta' : 'Usa anche l’impronta'))
+              : null,
+            h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn btn-secondary btn-danger-outline', onclick: run(disableLock) }, 'Disattiva il blocco')),
+          ]
+        : h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn btn-primary', onclick: run(enableLock) }, 'Attiva il blocco')),
+      h('p', { class: 'hint' }, 'Il blocco tiene lontano chi prende in mano il telefono: non cifra i dati. Il PIN non si può recuperare.'),
+    );
+  }
+
   const page = h(
     'section',
     { class: 'page settings' },
@@ -147,6 +188,8 @@ export async function mountSettings({ db, container }) {
       segmented({ legend: 'Dimensione del testo', options: SIZE_OPTIONS, value: settings.fontSize, onChange: (v) => change({ fontSize: v }) }),
       h('p', { class: 'preview', 'aria-hidden': 'true' }, 'Scrivere ogni giorno è un modo semplice per capire cosa dipende da noi e cosa no.'),
     ),
+
+    lockGroup(),
 
     h(
       'section',

@@ -6,14 +6,17 @@ server, nessun tracciamento.
 
 - Specifiche complete: [SPEC.md](SPEC.md) · Stato delle fasi: [ROADMAP.md](ROADMAP.md)
 
-## Cosa fa (Fase 1)
+## Cosa fa (Fasi 1 e 2)
 
 - Pagina **Oggi** con la data in grande, più voci per giorno con l'ora, etichetta facoltativa (mattina, giorno, sera).
-- Frecce per andare al giorno precedente e successivo.
+- Frecce per andare al giorno precedente e successivo. I giorni passati si aprono in **lettura** (pulita, a tutta pagina) con un tocco su «Modifica» per scrivere.
 - Editor semplice: grassetto, corsivo, titoletti, elenchi puntati e numerati. La barra degli strumenti compare solo mentre scrivi.
 - Salvataggio automatico: non c'è un pulsante «salva».
+- **Archivio:** calendario mensile con un puntino sui giorni scritti, «Vai a data», cronologia dei giorni e **ricerca** per parola (ignora maiuscole e accenti).
+- **Blocco** con impronta (o PIN): vedi il paragrafo «Il blocco» più sotto.
 - Tema carta o scuro (o quello del sistema), carattere serif o sans, quattro dimensioni del testo.
 - Backup e ripristino in un file JSON.
+- Tasto «indietro» di Android: da Impostazioni/Archivio torna a Oggi; da Oggi chiede di premerlo ancora per uscire.
 
 ---
 
@@ -72,7 +75,7 @@ Sarà `https://TUONOME.github.io/diario-stoico/`. Aprilo dal computer per contro
 
 **Prova offline:** attiva la modalità aereo e riapri l'app. Deve aprirsi e permetterti di scrivere come sempre.
 
-> Il blocco schermo del telefono è, per ora, l'unica protezione dell'accesso: il blocco con impronta dentro l'app arriva nella Fase 2.
+> Per proteggere l'accesso al diario attiva il blocco dell'app (vedi «Il blocco» più sotto).
 
 ## 3. Aggiornare l'app
 
@@ -104,7 +107,36 @@ Download. Accanto al pulsante leggi «ultimo backup: …» (è solo un'informazi
 
 Se il file non è valido, l'app te lo dice e non tocca niente.
 
-## 5. Privacy: cosa è protetto e cosa no (promemoria)
+Il file di backup **non contiene** PIN né impronta (sono legati al telefono): su un telefono nuovo, dopo il ripristino,
+riattivi il blocco da *Impostazioni → Blocco*.
+
+## 5. Il blocco (impronta e PIN)
+
+*Impostazioni → Blocco → Attiva il blocco.*
+
+- **Prima di attivarlo fai un backup** (l'app te lo ricorda e lo puoi fare lì).
+- Scegli un **PIN di 4-8 cifre**. Se il telefono lo permette, puoi registrare anche l'**impronta**.
+- **Con l'impronta attiva** si apre con quella; il PIN compare solo come alternativa («Usa il PIN») se l'impronta non viene
+  riconosciuta. **Senza impronta registrata** si entra direttamente con il PIN.
+- Android può proporre, al posto dell'impronta, il blocco schermo del telefono: è normale, fa parte del sistema.
+- Il diario si richiude se resti fuori dall'app **più di un minuto**. Appena esci, il contenuto viene comunque coperto
+  (anche nell'anteprima delle app recenti).
+- Dopo 5 PIN sbagliati bisogna aspettare (30 secondi, poi sempre di più).
+- Cambiare il PIN, togliere l'impronta o disattivare il blocco richiede prima impronta o PIN.
+- Il PIN non è salvato: l'app conserva solo un'«impronta digitale» (hash) non invertibile. PIN e impronta sono legati a
+  **questo telefono** e **non finiscono nei backup**. Importare un backup non cambia il blocco.
+
+**Se dimentichi il PIN (e l'impronta non va):** non c'è modo di recuperarlo, perché non esiste un server. Si ricomincia così:
+1. Chrome → Impostazioni → Impostazioni sito (o tieni premuta l'icona dell'app → Info app) → **cancella i dati** del sito
+   `…github.io`. Il diario sul telefono sparisce.
+2. Riapri l'app e importa il tuo ultimo backup (*Sostituisci tutto*). Il blocco sarà spento: puoi riattivarlo.
+
+Per questo il backup prima di attivare il blocco è importante.
+
+> Il blocco è un cancello, non una cifratura: tiene lontano chi prende in mano il telefono, ma i dati restano leggibili da
+> chi ha accesso ai file del dispositivo con strumenti da esperto.
+
+## 6. Privacy: cosa è protetto e cosa no (promemoria)
 
 **Dove stanno i tuoi scritti.** Solo nel database di Chrome sul tuo telefono. L'app non invia nulla da nessuna parte: nel
 codice non ci sono richieste di rete e una regola di sicurezza della pagina le bloccherebbe comunque verso altri siti.
@@ -113,7 +145,8 @@ e suo, non il tuo.
 
 **Cosa NON è protetto, per ora:**
 
-- **Il telefono sbloccato.** Chiunque lo abbia in mano può aprire l'app e leggere tutto. Il blocco con impronta è previsto nella Fase 2.
+- **Il telefono sbloccato, se non attivi il blocco dell'app.** Chiunque lo abbia in mano può aprire l'app e leggere tutto.
+  Con il blocco attivo serve l'impronta o il PIN (ma i dati non sono cifrati).
 - **I file di backup (`diario-stoico-*.json`).** Sono testo semplice, non cifrato: li legge chiunque li trovi nella cartella
   Download o nel cloud dove li copi. Conservali dove vuoi tu, e **non caricarli mai su GitHub** (il `.gitignore` aiuta, ma
   non sostituisce l'attenzione). La cifratura è tra le idee della Fase 6.
@@ -153,10 +186,15 @@ dell'aggiornamento. Se ti dimentichi, `npm test` fallisce e te lo ricorda.
 ```
 index.html  manifest.webmanifest  sw.js        pagina, installazione, offline
 css/        theme.css (variabili: colori, caratteri, spaziature)  app.css (componenti)
-js/         app.js (avvio e navigazione)   db.js + migrations.js (IndexedDB e migrazioni)
-            dates.js (date AAAA-MM-GG, fuso di Roma)   entries.js   settings.js
+js/         app.js (avvio, blocco, schermate)   navigation.js + routes.js (indirizzi e tasto indietro)
+            db.js + migrations.js (IndexedDB e migrazioni)
+            dates.js (date AAAA-MM-GG, fuso di Roma)   calendar.js   entries.js   settings.js
+            archive.js (letture dell'archivio)   search.js (ricerca)
             backup.js (export/import)   markdown.js (formato del testo)   editor.js + toolbar.js
-            autosave.js   appearance.js   dom.js + ui.js   views/ (today.js, settings.js)
+            pin.js, lockout.js, lockpolicy.js, webauthn*.js (logica del blocco)
+            lockscreen.js, lockflow.js, pinpad.js (schermate del blocco)
+            autosave.js   appearance.js   dom.js + ui.js
+            views/ (today.js, read.js, archive.js, settings.js, dayhead.js)
 fonts/      Lora e Inter (licenza OFL, con i testi di licenza)
 icons/      icone dell'app          tests/  test automatici          tools/  script di servizio
 ```

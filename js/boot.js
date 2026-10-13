@@ -1,10 +1,12 @@
 // Script classico caricato nell'<head>: applica tema, carattere e dimensione PRIMA del primo disegno
 // della pagina, così non c'è il lampo "crema" prima del tema scuro. Vedi appearance.js.
+// Se il blocco è attivo nasconde subito il contenuto, finché non compare la schermata di blocco.
 (function () {
   try {
+    var root = document.documentElement;
+    if (localStorage.getItem('ds-lock-hint')) root.classList.add('boot-lock');
     var a = JSON.parse(localStorage.getItem('ds-appearance') || 'null');
     if (!a) return;
-    var root = document.documentElement;
     var theme = a.theme === 'scuro' ? 'scuro' : 'carta';
     if (a.theme === 'sistema') theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'scuro' : 'carta';
     root.dataset.theme = theme;
