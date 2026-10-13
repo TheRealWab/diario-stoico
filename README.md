@@ -104,6 +104,29 @@ Download. Accanto al pulsante leggi «ultimo backup: …» (è solo un'informazi
 
 Se il file non è valido, l'app te lo dice e non tocca niente.
 
+## 5. Privacy: cosa è protetto e cosa no (promemoria)
+
+**Dove stanno i tuoi scritti.** Solo nel database di Chrome sul tuo telefono. L'app non invia nulla da nessuna parte: nel
+codice non ci sono richieste di rete e una regola di sicurezza della pagina le bloccherebbe comunque verso altri siti.
+GitHub ospita solo i file dell'app (il codice), mai i tuoi scritti. Chi apre l'indirizzo pubblico dell'app vede un diario vuoto
+e suo, non il tuo.
+
+**Cosa NON è protetto, per ora:**
+
+- **Il telefono sbloccato.** Chiunque lo abbia in mano può aprire l'app e leggere tutto. Il blocco con impronta è previsto nella Fase 2.
+- **I file di backup (`diario-stoico-*.json`).** Sono testo semplice, non cifrato: li legge chiunque li trovi nella cartella
+  Download o nel cloud dove li copi. Conservali dove vuoi tu, e **non caricarli mai su GitHub** (il `.gitignore` aiuta, ma
+  non sostituisce l'attenzione). La cifratura è tra le idee della Fase 6.
+- **La tastiera del telefono** (Samsung o Gboard) vede ciò che digiti: controlla nelle sue impostazioni se sono attive
+  funzioni di cloud o di apprendimento. Anche il controllo ortografico «avanzato» di Chrome, se attivo, invia il testo a Google;
+  quello di base è locale.
+
+**Attenzione ai tuoi altri siti su GitHub Pages.** I dati di un sito sono legati al suo indirizzo (`TUONOME.github.io`),
+non alla cartella. Tutti i progetti che pubblichi con GitHub Pages sotto lo stesso account condividono lo stesso indirizzo:
+un altro progetto con codice non fidato (script esterni, librerie sconosciute) potrebbe, nello stesso browser, leggere il
+database del diario. Finché pubblichi lì solo cose di cui conosci il codice non c'è problema; se vuoi pubblicare altro con
+codice di terzi, separa prima i progetti (altro account o dominio proprio) e chiedimi come.
+
 ---
 
 ## Per chi sviluppa
