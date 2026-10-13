@@ -1,7 +1,9 @@
 // Piccole utilità senza dipendenze dal browser (usabili anche nei test).
 
 export const APP_ID = 'diario-stoico';
-export const APP_VERSION = '1.0.0';
+// Versione mostrata in Impostazioni. Unica fonte: si cambia solo qui (e in package.json, lo controlla un test).
+//   aggiornamento piccolo → 1.1, 1.2, 1.3 …      aggiornamento grande (nuova fase) → 2.0, 3.0 …
+export const APP_VERSION = '1.2';
 
 export const uuid = () => crypto.randomUUID();
 

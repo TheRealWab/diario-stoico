@@ -141,6 +141,9 @@ npm run sw      # aggiorna l'elenco dei file in sw.js: DA FARE dopo ogni modific
 npm run icons   # rigenera le icone in icons/
 ```
 
+**Versione:** a ogni aggiornamento si cambia `APP_VERSION` in `js/util.js` (e `version` in `package.json`, con `.0` in fondo)
+e si aggiunge una riga in `CHANGELOG.md`. Piccole modifiche: 1.1, 1.2, 1.3…; modifiche grandi: 2.0, 3.0… I test controllano che i tre posti coincidano.
+
 **Importante:** dopo aver modificato qualunque file dell'app (cartelle `css/`, `js/`, `fonts/`, `icons/`, `index.html`,
 `manifest.webmanifest`) esegui `npm run sw`. Questo cambia la versione della cache e permette ai telefoni di accorgersi
 dell'aggiornamento. Se ti dimentichi, `npm test` fallisce e te lo ricorda.
