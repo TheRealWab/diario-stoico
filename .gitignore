@@ -1,0 +1,8 @@
+# File di backup del diario: non devono MAI finire nel repository pubblico
+diario-stoico-*.json
+
+# Strumenti locali
+node_modules/
+.DS_Store
+Thumbs.db
+.claude/
