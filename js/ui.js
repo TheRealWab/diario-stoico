@@ -74,9 +74,14 @@ export function toast(message, { actionLabel, onAction, sticky = false } = {}) {
     ].filter(Boolean),
   );
   toastEl.classList.add('is-visible');
-  if (!sticky && !actionLabel) toastTimer = setTimeout(hide, 4000);
+  if (!sticky && !actionLabel) toastTimer = setTimeout(hideToast, 4000);
 
   function hide() {
     toastEl.classList.remove('is-visible');
   }
+}
+
+export function hideToast() {
+  clearTimeout(toastTimer);
+  toastEl?.classList.remove('is-visible');
 }

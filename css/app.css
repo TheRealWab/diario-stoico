@@ -424,6 +424,83 @@ button { cursor: pointer; }
 .row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
 .row .hint { margin: 0; }
 
+/* ---------- lettura dei giorni passati ---------- */
+
+.read-body {
+  font-family: var(--font-diary);
+  font-size: var(--diary-size);
+  line-height: var(--diary-leading);
+  overflow-wrap: anywhere;
+}
+.read-body p { margin: 0 0 0.8em; }
+.read-body > :last-child { margin-bottom: 0; }
+.read-body h2 { margin: 1.1em 0 0.35em; font-size: 1.2em; font-weight: 600; line-height: 1.35; }
+.read-body ul, .read-body ol { margin: 0 0 0.8em; padding-left: 1.4em; }
+.read-body li { margin: 0.15em 0; padding-left: 0.2em; }
+.read-body li::marker { color: var(--accent); }
+.read-body strong { font-weight: 700; }
+
+.entry-read .entry-head { min-height: 2rem; }
+.entry-label { font-size: 0.8125rem; letter-spacing: 0.04em; color: var(--ink-soft); }
+.entry-label::before { content: '·'; margin-right: var(--space-2); }
+
+.read-actions { display: flex; justify-content: center; margin: 0 0 var(--space-5); }
+.read-actions .btn { min-width: 10rem; text-decoration: none; }
+
+.day-links { display: flex; justify-content: center; flex-wrap: wrap; gap: var(--space-1) var(--space-4); margin: calc(var(--space-2) * -1) 0 var(--space-4); }
+.link-quiet { display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 var(--space-2); color: var(--accent-text); font-size: 0.9375rem; text-decoration: none; }
+.link-quiet:active { text-decoration: underline; }
+
+/* ---------- archivio ---------- */
+
+.archive .page-title { margin-bottom: var(--space-4); }
+.segmented a { position: relative; display: block; color: inherit; text-decoration: none; }
+.segmented a + a span { border-left: 1px solid var(--line); }
+.segmented a[aria-current='page'] span { background: var(--accent-fill); color: var(--on-accent); font-weight: 600; }
+.archive-body { margin-top: var(--space-5); }
+
+.visually-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; overflow: hidden; }
+
+.cal-head { display: grid; grid-template-columns: var(--tap) 1fr var(--tap); align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); }
+.cal-title { margin: 0; text-align: center; font-family: var(--font-serif); font-size: 1.35rem; font-weight: 500; text-transform: capitalize; }
+.cal-head .icon-btn { text-decoration: none; }
+.cal-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-weekdays span { padding: var(--space-1) 0 var(--space-2); text-align: center; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+.cal-day { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 3.25rem; border-radius: var(--radius); color: var(--ink); text-decoration: none; transition: background-color var(--dur) var(--ease); }
+a.cal-day:active { background: var(--line); }
+.cal-num { font-variant-numeric: tabular-nums; font-size: 1rem; line-height: 1.2; }
+.cal-dot { width: 6px; height: 6px; border-radius: 50%; background: transparent; }
+.cal-day.has-entries .cal-dot { background: var(--accent); }
+.cal-day.is-today { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.cal-day.is-today .cal-num { color: var(--accent-text); font-weight: 700; }
+.cal-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); margin-top: var(--space-5); }
+.cal-actions .btn { text-decoration: none; }
+.cal-hint { margin-top: var(--space-4); text-align: center; }
+
+.history, .results { display: grid; gap: 0; }
+.day-card, .result { display: grid; gap: var(--space-1); padding: var(--space-4) 0; border-top: 1px solid var(--line); color: var(--ink); text-decoration: none; }
+.history > :first-child, .results > :first-child { border-top-color: transparent; }
+.day-card:active, .result:active { background: color-mix(in srgb, var(--line) 50%, transparent); }
+.day-card-date { font-family: var(--font-serif); font-size: 1.125rem; font-weight: 500; }
+.day-card-date::first-letter { text-transform: uppercase; }
+.day-card-meta { font-size: 0.8125rem; letter-spacing: 0.04em; color: var(--ink-soft); }
+.day-card-preview { font-family: var(--font-diary); font-size: 0.9375rem; line-height: 1.55; color: var(--ink-soft); overflow-wrap: anywhere; }
+.btn-more { display: flex; width: 100%; margin-top: var(--space-4); }
+
+.search-input {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 1rem;
+}
+.search-input::placeholder { color: var(--ink-soft); opacity: 0.8; }
+.search-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.search-status { margin: var(--space-3) 0 var(--space-2); }
+mark { padding: 0 0.12em; border-radius: 0.2em; background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--ink); }
 /* ---------- movimento ridotto ---------- */
 
 @media (prefers-reduced-motion: reduce) {

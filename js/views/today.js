@@ -1,23 +1,18 @@
 // Pagina "Oggi" (e, con le frecce, qualsiasi altro giorno).
 
 import { createSaver } from '../autosave.js';
-import { addDays, formatLongParts, timeStr, todayStr } from '../dates.js';
+import { timeStr } from '../dates.js';
 import { h, icon } from '../dom.js';
 import { createEditor } from '../editor.js';
 import { LABELS, compareEntries, createEntry, deleteEntry, listEntriesForDay, updateEntry } from '../entries.js';
-import { go } from '../navigation.js';
-import { dayHash } from '../routes.js';
 import { confirmDialog, toast } from '../ui.js';
+import { dayHead, dayLinks } from './dayhead.js';
 
 const LABEL_TEXT = { mattina: 'Mattina', giorno: 'Giorno', sera: 'Sera' };
 
 export async function mountToday({ db, container, date }) {
-  const today = todayStr();
-  const parts = formatLongParts(date);
   const entries = await listEntriesForDay(db, date);
   const views = new Map(); // id -> { entry, root, saver, editor }
-
-  const goTo = (d) => go(dayHash(d, todayStr()));
 
   const list = h('div', { class: 'entries' });
   const empty = h('p', { class: 'empty' }, 'Una pagina bianca. Scrivi quando vuoi, anche una sola riga.');
@@ -26,14 +21,8 @@ export async function mountToday({ db, container, date }) {
   const page = h(
     'section',
     { class: 'page day' },
-    h(
-      'header',
-      { class: 'day-head' },
-      h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Giorno precedente', onclick: () => goTo(addDays(date, -1)) }, icon('chevron-left')),
-      h('h1', { class: 'day-title' }, h('span', { class: 'weekday' }, parts.weekday), ' ', h('span', { class: 'daydate' }, parts.rest)),
-      h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Giorno successivo', onclick: () => goTo(addDays(date, 1)) }, icon('chevron-right')),
-    ),
-    date === today ? null : h('a', { class: 'back-today', href: '#/oggi' }, 'Torna a oggi'),
+    dayHead(date),
+    dayLinks(date),
     list,
     empty,
     addBtn,
