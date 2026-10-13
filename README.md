@@ -94,8 +94,17 @@ tuoi dati. Se non premi, l'aggiornamento si attiva da solo la volta dopo che chi
 I dati vivono solo nel telefono: se lo perdi, lo resetti o disinstalli Chrome/l'app, senza backup sono persi.
 **Fai un backup ogni tanto** (ad esempio una volta a settimana), e conservalo fuori dal telefono (computer, cloud personale…).
 
-**Fare un backup:** *Impostazioni → Esporta backup (JSON)*. Il file `diario-stoico-AAAA-MM-GG.json` finisce nella cartella
-Download. Accanto al pulsante leggi «ultimo backup: …» (è solo un'informazione, non un promemoria).
+**Fare un backup:** *Impostazioni → Esporta backup (JSON)*. L'app chiede se proteggerlo con una **password**:
+- **Con password (consigliato):** scegli una password (almeno 10 caratteri, meglio una frase di più parole) e la ripeti. Il file
+  `diario-stoico-AAAA-MM-GG-cifrato.json` finisce nella cartella Download e **non rivela nulla del diario**: chi lo trova non può
+  leggerlo senza la password. L'app lo riapre subito per verificare che la password funzioni.
+- **Senza password:** il file `diario-stoico-AAAA-MM-GG.json` è testo semplice, leggibile da chiunque lo trovi.
+
+**La password non è salvata da nessuna parte e non si può recuperare.** Se la perdi, quel backup è perso per sempre. Tienila in
+un gestore di password o scritta in un posto sicuro, separata dal file. Un file cifrato non «chiede» la password da solo:
+è semplicemente illeggibile; per aprirlo serve l'app (o un programma che conosca il formato) e la password giusta.
+
+Accanto al pulsante leggi «ultimo backup: …» (è solo un'informazione, non un promemoria).
 
 **Ripristinare:** *Impostazioni → Importa da file…*, scegli il file. L'app lo controlla e ti mostra un riepilogo
 (quante voci, da quando a quando). Finché non scegli, **non cambia nulla**. Poi decidi:
@@ -147,9 +156,11 @@ e suo, non il tuo.
 
 - **Il telefono sbloccato, se non attivi il blocco dell'app.** Chiunque lo abbia in mano può aprire l'app e leggere tutto.
   Con il blocco attivo serve l'impronta o il PIN (ma i dati non sono cifrati).
-- **I file di backup (`diario-stoico-*.json`).** Sono testo semplice, non cifrato: li legge chiunque li trovi nella cartella
-  Download o nel cloud dove li copi. Conservali dove vuoi tu, e **non caricarli mai su GitHub** (il `.gitignore` aiuta, ma
-  non sostituisce l'attenzione). La cifratura è tra le idee della Fase 6.
+- **I file di backup senza password.** Sono testo semplice: li legge chiunque li trovi nella cartella Download o nel cloud dove
+  li copi. Per questo l'app propone di proteggerli con una password. Anche i backup cifrati **non vanno mai caricati su
+  GitHub** (il `.gitignore` aiuta, ma non sostituisce l'attenzione). Quanto è sicuro un file cifrato dipende dalla password:
+  una frase lunga resiste a chi prova password a caso, una parola comune no.
+- **I dati dentro l'app.** Non sono cifrati (la cifratura nell'app è prevista dopo, nella Fase 6).
 - **La tastiera del telefono** (Samsung o Gboard) vede ciò che digiti: controlla nelle sue impostazioni se sono attive
   funzioni di cloud o di apprendimento. Anche il controllo ortografico «avanzato» di Chrome, se attivo, invia il testo a Google;
   quello di base è locale.

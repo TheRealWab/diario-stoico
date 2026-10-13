@@ -13,8 +13,8 @@ import { APP_ID } from './util.js';
 const isObject = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
 const isText = (v) => typeof v === 'string' && v.length > 0;
 
-export function exportFilename(now = new Date()) {
-  return `diario-stoico-${todayStr(now)}.json`;
+export function exportFilename(now = new Date(), { encrypted = false } = {}) {
+  return `diario-stoico-${todayStr(now)}${encrypted ? '-cifrato' : ''}.json`;
 }
 
 /**

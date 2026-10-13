@@ -3,6 +3,14 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 2.1 — 13 ottobre 2026
+- **Backup cifrato con password.** Esportando, l'app chiede una password (due volte) oppure permette di esportare senza.
+  Il file cifrato si chiama `diario-stoico-AAAA-MM-GG-cifrato.json` e non rivela nulla del diario. Importandolo, l'app chiede la
+  password. La password non è salvata da nessuna parte e non si può recuperare.
+- Cifratura AES-256 con chiave ricavata dalla password (PBKDF2, 600.000 ripetizioni); un file alterato viene riconosciuto.
+- Dopo la cifratura l'app riapre subito il file per essere sicura che la password lo apra davvero.
+- Nessuna modifica al database: i dati non sono toccati.
+
 ## 2.0 — 13 ottobre 2026 (Fase 2)
 - **Archivio** (nuova scheda nella barra in basso):
   - calendario mensile, settimana da lunedì, con un puntino sui giorni scritti, frecce tra i mesi e «Vai a data»;

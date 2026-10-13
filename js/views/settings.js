@@ -6,6 +6,8 @@ import { daysAgoLabel, formatDayMonthYear, todayStr } from '../dates.js';
 import { h } from '../dom.js';
 import { getSettings, saveSettings } from '../settings.js';
 import { flushAll } from '../autosave.js';
+import { BackupCryptoError, decryptBackup, encryptBackup, isEncryptedBackup } from '../crypto-backup.js';
+import { askPasswordDialog, exportProtectionDialog } from '../passworddialog.js';
 import { changePin, disableLock, enableLock, toggleFingerprint } from '../lockflow.js';
 import { isLockActive } from '../lockstate.js';
 import { confirmDialog, messageDialog, showDialog, toast } from '../ui.js';
@@ -60,13 +62,25 @@ export async function mountSettings({ db, container }) {
   const fileInput = h('input', { type: 'file', accept: 'application/json,.json', hidden: true, onchange: () => onFilePicked(fileInput) });
 
   async function doExport() {
+    const choice = await exportProtectionDialog();
+    if (!choice) return;
     try {
       await flushAll();
       const file = await buildExport(db);
-      downloadJson(file, exportFilename());
+      let out = file;
+      let name = exportFilename();
+      if (choice.mode === 'encrypted') {
+        toast('Cifro il backup…', { sticky: true });
+        out = await encryptBackup(file, choice.password);
+        // prova subito a riaprirlo: un backup che poi non si apre sarebbe peggio di nessun backup
+        const check = await decryptBackup(out, choice.password);
+        if (check.exportedAt !== file.exportedAt) throw new Error('verifica del backup cifrato non riuscita');
+        name = exportFilename(new Date(), { encrypted: true });
+      }
+      downloadJson(out, name);
       settings = await getSettings(db);
       refreshBackupNote();
-      toast('Backup salvato nella cartella Download.');
+      toast(choice.mode === 'encrypted' ? 'Backup cifrato salvato nella cartella Download.' : 'Backup salvato nella cartella Download (senza password).');
     } catch (err) {
       console.error(err);
       toast('Non sono riuscito a creare il backup.');
@@ -83,6 +97,20 @@ export async function mountSettings({ db, container }) {
     } catch {
       await messageDialog({ title: 'File non valido', text: 'Questo file non è un backup leggibile. I tuoi dati non sono stati toccati.' });
       return;
+    }
+    if (isEncryptedBackup(parsed)) {
+      // backup cifrato: serve la password; si può riprovare quante volte si vuole
+      const original = parsed;
+      parsed = await askPasswordDialog({
+        work: async (password) => {
+          try {
+            return { ok: true, value: await decryptBackup(original, password) };
+          } catch (err) {
+            return { ok: false, message: err instanceof BackupCryptoError ? err.message : 'Non riesco ad aprire il file.' };
+          }
+        },
+      });
+      if (parsed === null) return;
     }
     const check = validateImport(parsed);
     if (!check.ok) {
