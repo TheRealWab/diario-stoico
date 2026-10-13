@@ -5,9 +5,11 @@ import { h } from './dom.js';
 
 let counter = 0;
 
-function passwordField(label, autocomplete) {
+function passwordField(label, autocomplete, enterkeyhint = 'done') {
   const id = `pw-${++counter}`;
-  const input = h('input', { id, type: 'password', class: 'text-input', autocomplete, autocapitalize: 'off', spellcheck: 'false', autocorrect: 'off' });
+  const input = h('input', { id, type: 'password', class: 'text-input', autocomplete, enterkeyhint, autocapitalize: 'off', spellcheck: 'false', autocorrect: 'off' });
+  // quando compare la tastiera il campo scelto viene portato nella parte visibile della finestra
+  input.addEventListener('focus', () => setTimeout(() => input.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300));
   return { input, element: h('div', { class: 'field-row' }, h('label', { for: id }, label), input) };
 }
 
@@ -32,8 +34,8 @@ function openDialog(dlg, onClose) {
 export function exportProtectionDialog() {
   return new Promise((resolve) => {
     let result = null;
-    const first = passwordField('Password', 'new-password');
-    const second = passwordField('Ripeti la password', 'new-password');
+    const first = passwordField('Password', 'new-password', 'next');
+    const second = passwordField('Ripeti la password', 'new-password', 'done');
     const error = h('p', { class: 'form-error', role: 'alert' });
     const okBtn = h('button', { type: 'button', class: 'btn btn-primary', onclick: submit }, 'Esporta con password');
     const plainBtn = h('button', { type: 'button', class: 'btn btn-danger-outline', onclick: () => ((result = { mode: 'plain' }), dlg.close('ok')) }, 'Esporta senza password');
@@ -41,11 +43,11 @@ export function exportProtectionDialog() {
       'dialog',
       { class: 'dialog', 'aria-labelledby': 'export-title' },
       h('h2', { class: 'dialog-title', id: 'export-title' }, 'Proteggere il backup?'),
-      h('p', { class: 'dialog-text' }, 'Con una password, chi trova il file non può leggerlo. La password non viene salvata da nessuna parte e non si può recuperare: se la perdi, il backup è perso.'),
+      h('p', { class: 'dialog-text' }, 'Con una password chi trova il file non può leggerlo. Non si può recuperare: se la perdi, il backup è perso.'),
       first.element,
       second.element,
       showToggle([first.input, second.input]),
-      h('p', { class: 'hint' }, `Almeno ${MIN_PASSWORD_LENGTH} caratteri. Meglio una frase di più parole, e tienila in un gestore di password.`),
+      h('p', { class: 'hint' }, `Almeno ${MIN_PASSWORD_LENGTH} caratteri: meglio una frase di più parole.`),
       error,
       h('div', { class: 'dialog-actions' }, okBtn, plainBtn, h('button', { type: 'button', class: 'btn btn-ghost', onclick: () => dlg.close('') }, 'Annulla')),
     );
@@ -66,7 +68,8 @@ export function exportProtectionDialog() {
     dlg.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') {
         e.preventDefault();
-        submit();
+        if (e.target === first.input) second.input.focus(); // «Succ.» della tastiera: passa al secondo campo
+        else submit();
       }
     });
     openDialog(dlg, () => resolve(dlg.returnValue === 'ok' ? result : null));

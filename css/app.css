@@ -326,8 +326,19 @@ button { cursor: pointer; }
   background: var(--surface);
   color: var(--ink);
   box-shadow: var(--shadow);
+  /* con la tastiera aperta lo spazio si riduce: la finestra non deve superarlo, e scorre se serve */
+  max-height: calc(100dvh - 1.5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .dialog::backdrop { background: var(--backdrop); }
+@media (max-height: 640px) {
+  .dialog { padding: var(--space-4); }
+  .dialog-title { margin-bottom: var(--space-2); font-size: 1.15rem; }
+  .dialog-text { margin-bottom: var(--space-3); font-size: 0.875rem; }
+  .dialog-actions { gap: var(--space-2); margin-top: var(--space-3); }
+  .dialog .field-row { margin-bottom: var(--space-2); }
+}
 .dialog[open] { animation: view-in var(--dur) var(--ease); }
 .dialog-title { margin: 0 0 var(--space-3); font-family: var(--font-serif); font-size: 1.3rem; font-weight: 600; line-height: 1.25; }
 .dialog-body p { margin: 0 0 var(--space-3); }

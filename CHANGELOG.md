@@ -3,6 +3,11 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 2.2 — 13 ottobre 2026
+- Corretta la finestra della password del backup, che con la tastiera aperta veniva tagliata: ora è più compatta,
+  scorre se serve e porta da sola il campo scelto nella parte visibile. Il tasto «Succ.» della tastiera passa al secondo campo.
+- Tutte le finestre dell'app non superano più lo spazio disponibile quando compare la tastiera.
+
 ## 2.1 — 13 ottobre 2026
 - **Backup cifrato con password.** Esportando, l'app chiede una password (due volte) oppure permette di esportare senza.
   Il file cifrato si chiama `diario-stoico-AAAA-MM-GG-cifrato.json` e non rivela nulla del diario. Importandolo, l'app chiede la
