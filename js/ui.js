@@ -64,11 +64,14 @@ export function toast(message, { actionLabel, onAction, sticky = false } = {}) {
     document.body.append(toastEl);
   }
   clearTimeout(toastTimer);
+  // (replaceChildren scriverebbe «null» come testo: i nodi vuoti si tolgono prima)
   toastEl.replaceChildren(
-    h('span', { class: 'toast-text' }, message),
-    actionLabel
-      ? h('button', { type: 'button', class: 'toast-action', onclick: () => { hide(); onAction?.(); } }, actionLabel)
-      : null,
+    ...[
+      h('span', { class: 'toast-text' }, message),
+      actionLabel
+        ? h('button', { type: 'button', class: 'toast-action', onclick: () => { hide(); onAction?.(); } }, actionLabel)
+        : null,
+    ].filter(Boolean),
   );
   toastEl.classList.add('is-visible');
   if (!sticky && !actionLabel) toastTimer = setTimeout(hide, 4000);

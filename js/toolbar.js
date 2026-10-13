@@ -81,6 +81,44 @@ export function initToolbar() {
     }, 0);
   });
   document.addEventListener('selectionchange', () => {
-    if (document.body.classList.contains('writing')) refreshState();
+    if (document.body.classList.contains('writing')) {
+      refreshState();
+      followCaret();
+    }
+  });
+  document.addEventListener('input', (e) => {
+    if (inEditor(e.target)) followCaret();
+  });
+  // quando la tastiera compare o scompare lo spazio visibile cambia
+  window.visualViewport?.addEventListener('resize', followCaret);
+  document.addEventListener('focusin', (e) => {
+    if (inEditor(e.target)) setTimeout(followCaret, 350);
+  });
+}
+
+// Mantiene il cursore visibile: sopra la barra degli strumenti (e quindi sopra la tastiera),
+// e non troppo in alto. Il telefono da solo non conosce l'altezza della nostra barra.
+let followQueued = false;
+function followCaret() {
+  if (followQueued) return;
+  followQueued = true;
+  requestAnimationFrame(() => {
+    followQueued = false;
+    const bar = document.querySelector('.toolbar');
+    const sel = getSelection();
+    if (!bar || !document.body.classList.contains('writing') || !sel?.rangeCount || !inEditor(sel.anchorNode)) return;
+
+    const range = sel.getRangeAt(0);
+    let rect = range.getClientRects()[0];
+    if (!rect || rect.height === 0) {
+      // riga vuota: il cursore non ha un rettangolo suo, si usa quello del paragrafo
+      const node = sel.anchorNode;
+      rect = (node.nodeType === 1 ? node : node.parentElement).getBoundingClientRect();
+    }
+    const margin = 28;
+    const bottomLimit = bar.getBoundingClientRect().top - margin;
+    const topLimit = margin;
+    if (rect.bottom > bottomLimit) window.scrollBy(0, rect.bottom - bottomLimit);
+    else if (rect.top < topLimit) window.scrollBy(0, rect.top - topLimit);
   });
 }

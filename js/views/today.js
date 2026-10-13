@@ -5,6 +5,8 @@ import { addDays, formatLongParts, timeStr, todayStr } from '../dates.js';
 import { h, icon } from '../dom.js';
 import { createEditor } from '../editor.js';
 import { LABELS, compareEntries, createEntry, deleteEntry, listEntriesForDay, updateEntry } from '../entries.js';
+import { go } from '../navigation.js';
+import { dayHash } from '../routes.js';
 import { confirmDialog, toast } from '../ui.js';
 
 const LABEL_TEXT = { mattina: 'Mattina', giorno: 'Giorno', sera: 'Sera' };
@@ -15,9 +17,7 @@ export async function mountToday({ db, container, date }) {
   const entries = await listEntriesForDay(db, date);
   const views = new Map(); // id -> { entry, root, saver, editor }
 
-  const goTo = (d) => {
-    location.hash = d === todayStr() ? '#/oggi' : `#/giorno/${d}`;
-  };
+  const goTo = (d) => go(dayHash(d, todayStr()));
 
   const list = h('div', { class: 'entries' });
   const empty = h('p', { class: 'empty' }, 'Una pagina bianca. Scrivi quando vuoi, anche una sola riga.');
