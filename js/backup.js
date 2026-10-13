@@ -3,10 +3,10 @@
 // Formato del file:
 //   { app: "diario-stoico", schemaVersion, exportedAt, data: { entries: [...], settings: [...], ... } }
 
-import { getAll, txDone } from './db.js';
+import { get, getAll, txDone } from './db.js';
 import { MIGRATIONS, SCHEMA_VERSION, STORES, migrateData } from './migrations.js';
 import { LABELS } from './entries.js';
-import { checkSettings, saveSettings } from './settings.js';
+import { DEFAULT_SETTINGS, LOCK_KEYS, SETTINGS_ID, checkSettings, saveSettings } from './settings.js';
 import { isValidDateStr, isValidTimeStr, todayStr } from './dates.js';
 import { APP_ID } from './util.js';
 
@@ -25,6 +25,8 @@ export async function buildExport(db, now = new Date()) {
   await saveSettings(db, { lastBackupDate: todayStr(now) }, now);
   const data = {};
   for (const store of Object.keys(STORES)) data[store] = await getAll(db, store);
+  // PIN e impronta sono legati a questo telefono: non vanno nel file (che è testo semplice)
+  data.settings = data.settings.map((s) => Object.fromEntries(Object.entries(s).filter(([k]) => !LOCK_KEYS.includes(k))));
   return { app: APP_ID, schemaVersion: SCHEMA_VERSION, exportedAt: now.toISOString(), data };
 }
 
@@ -119,6 +121,13 @@ export async function planMerge(db, data) {
  */
 export async function importData(db, data, mode) {
   if (mode !== 'replace' && mode !== 'merge') throw new Error(`Modalità non valida: ${mode}`);
+
+  // Il blocco di QUESTO telefono non cambia mai con un'importazione, nemmeno con «sostituisci».
+  const current = await get(db, 'settings', SETTINGS_ID);
+  const lock = Object.fromEntries(LOCK_KEYS.map((k) => [k, current?.[k] ?? DEFAULT_SETTINGS[k]]));
+  data = { ...data, settings: (data.settings ?? []).map((s) => ({ ...s, ...lock })) };
+  if (mode === 'replace' && current && !data.settings.length) data.settings = [current];
+
   const names = Object.keys(STORES);
   const tx = db.transaction(names, 'readwrite');
   const done = txDone(tx);
