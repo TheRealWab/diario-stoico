@@ -156,7 +156,8 @@ export function serialize(blocks) {
   const parts = [];
   for (const b of blocks) {
     if (b.type === 'h') {
-      parts.push(`## ${serializeInline(b.runs)}`);
+      // un titoletto è già in grassetto: il grassetto in più non aggiunge nulla
+      parts.push(`## ${serializeInline(b.runs.map((r) => ({ ...r, bold: false })))}`);
     } else if (b.type === 'ul') {
       parts.push(b.items.map((it) => `- ${serializeInline(it)}`).join('\n'));
     } else if (b.type === 'ol') {

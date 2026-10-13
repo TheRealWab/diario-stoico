@@ -29,6 +29,11 @@ test('titoletti ed elenchi', () => {
   assert.deepEqual(parse(md).map((b) => b.type), ['h', 'p', 'ul', 'ol']);
 });
 
+test('il grassetto dentro un titoletto non viene salvato', () => {
+  const root = el('div', [el('h2', [el('b', [text('Esame serale')])])]);
+  assert.equal(serialize(fromDom(root)), '## Esame serale');
+});
+
 test("l'elenco numerato viene rinumerato", () => {
   assert.equal(roundtrip('3. a\n7. b'), '1. a\n2. b');
 });
