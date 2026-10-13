@@ -67,6 +67,37 @@ export function daysBetween(a, b) {
   return Math.round((toUtc(b) - toUtc(a)) / 86400000);
 }
 
+/** Giorno della settimana con la settimana che parte da lunedì: 0 = lunedì … 6 = domenica. */
+export function weekdayIndex(s) {
+  return (toUtc(s).getUTCDay() + 6) % 7;
+}
+
+// ---------- mesi: stringhe "AAAA-MM" ----------
+
+export function isValidMonthStr(s) {
+  return typeof s === 'string' && /^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(s);
+}
+
+export const monthOf = (dateStr) => dateStr.slice(0, 7);
+
+export function daysInMonth(ym) {
+  const [y, m] = ym.split('-').map(Number);
+  return new Date(Date.UTC(y, m, 0)).getUTCDate();
+}
+
+export function addMonths(ym, n) {
+  const [y, m] = ym.split('-').map(Number);
+  const index = y * 12 + (m - 1) + n;
+  return `${String(Math.floor(index / 12)).padStart(4, '0')}-${String((index % 12) + 1).padStart(2, '0')}`;
+}
+
+const monthFormat = new Intl.DateTimeFormat('it-IT', { timeZone: 'UTC', month: 'long', year: 'numeric' });
+
+/** "ottobre 2026" */
+export function monthLabel(ym) {
+  return monthFormat.format(toUtc(`${ym}-01`));
+}
+
 const weekdayFormat = new Intl.DateTimeFormat('it-IT', { timeZone: 'UTC', weekday: 'long' });
 const restFormat = new Intl.DateTimeFormat('it-IT', {
   timeZone: 'UTC',
