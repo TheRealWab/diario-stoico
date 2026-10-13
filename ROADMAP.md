@@ -12,6 +12,13 @@ Si passa alla fase successiva solo dopo qualche giorno di uso reale sul telefono
 | 5 | Ricorrenze, revisioni settimanali e mensili, menzione degli obiettivi nelle voci, export Markdown | Da fare |
 | 6 | Rifiniture secondo l'uso reale (accento, modelli di giornata, trascinamento moduli, filtri, preferiti, cifratura, notifiche) | Da fare |
 
+Fase 1 pubblicata e installata sull'S25 il 13 ottobre 2026. Prima della Fase 2 si aspettano alcuni giorni di uso reale.
+
+### Note dalla prima prova (13 ottobre 2026)
+
+- Corretti: «null» nell'avviso del backup, cursore coperto dalla barra di formattazione, tasto «indietro» con conferma di uscita.
+- Pulsante «Aggiorna» dell'avviso di aggiornamento ridisegnato (era poco gradevole).
+
 ## Scelte concordate (Fase 1)
 
 - JavaScript puro con moduli ES, senza passaggio di build.
