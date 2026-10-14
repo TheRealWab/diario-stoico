@@ -6,8 +6,10 @@ server, nessun tracciamento.
 
 - Specifiche complete: [SPEC.md](SPEC.md) · Stato delle fasi: [ROADMAP.md](ROADMAP.md)
 
-## Cosa fa (Fasi 1 e 2)
+## Cosa fa (Fasi 1, 2 e 3)
 
+- **Obiettivi** (nuova scheda): giorno, settimana, mese e anno, con spunta, cascata e chiusura guidata (vedi «Gli obiettivi» più sotto).
+- **Striscia degli obiettivi** nella pagina di Oggi, con gli obiettivi del giorno e della settimana spuntabili con un tocco.
 - Pagina **Oggi** con la data in grande, più voci per giorno con l'ora, etichetta facoltativa (mattina, giorno, sera).
 - Frecce per andare al giorno precedente e successivo. I giorni passati si aprono in **lettura** (pulita, a tutta pagina) con un tocco su «Modifica» per scrivere.
 - Editor semplice: grassetto, corsivo, titoletti, elenchi puntati e numerati. La barra degli strumenti compare solo mentre scrivi.
@@ -17,6 +19,22 @@ server, nessun tracciamento.
 - Tema carta o scuro (o quello del sistema), carattere serif o sans, quattro dimensioni del testo.
 - Backup e ripristino in un file JSON.
 - Tasto «indietro» di Android: da Impostazioni/Archivio torna a Oggi; da Oggi chiede di premerlo ancora per uscire.
+
+## Gli obiettivi
+
+- **Periodi:** si sceglie «questa settimana» o «ottobre», non due date a mano. La settimana va da lunedì a domenica.
+- **Stati:** da fare, fatto, non riuscito, rimandato. La spunta alterna «da fare» e «fatto»; gli altri stati si scelgono nella scheda dell'obiettivo.
+- **Cascata (facoltativa):** un obiettivo può stare dentro uno di orizzonte più lungo (una settimana dentro un mese, un giorno dentro
+  una settimana o un mese…). Un obiettivo appartiene al periodo in cui **comincia**: la settimana dal 28 settembre al 4 ottobre
+  sta sotto settembre. Si possono avere anche obiettivi senza genitore.
+- **Striscia in Oggi:** gli obiettivi del giorno e della settimana in corso, con un campo veloce per aggiungerne uno per oggi.
+- **Chiusura guidata:** quando un periodo finisce e un obiettivo è ancora «da fare», nella pagina Obiettivi compare un riquadro
+  discreto con «Rivedi». Si sceglie com'è andata (fatto, non riuscito, rimandato) e, se vuoi, si scrive una riga. Nessun punteggio, nessuna
+  notifica, nessuna serie di giorni. Si può **saltare** un obiettivo o fermarsi con «Basta per ora». Vale solo per **settimane, mesi e anni**
+  (mai per i singoli giorni) e solo per i periodi finiti da **non più di 60 giorni**: nessun arretrato che si accumula.
+- **Rimandato:** si può **riportare** l'obiettivo al periodo successivo (nasce una copia nuova; l'originale resta «rimandato»).
+- **Eliminare** un obiettivo chiede conferma; i suoi sotto-obiettivi **restano**, senza genitore.
+- Nessuna migrazione del database: i dati restano come sono. Gli obiettivi entrano nei backup e vengono controllati all'importazione.
 
 ---
 
@@ -201,11 +219,13 @@ js/         app.js (avvio, blocco, schermate)   navigation.js + routes.js (indir
             db.js + migrations.js (IndexedDB e migrazioni)
             dates.js (date AAAA-MM-GG, fuso di Roma)   calendar.js   entries.js   settings.js
             archive.js (letture dell'archivio)   search.js (ricerca)
+            periods.js (giorno/settimana/mese/anno)   goals.js (obiettivi)   goals-policy.js (quando proporre le chiusure)
+            goaldialogs.js (finestre degli obiettivi)
             backup.js (export/import)   markdown.js (formato del testo)   editor.js + toolbar.js
             pin.js, lockout.js, lockpolicy.js, webauthn*.js (logica del blocco)
             lockscreen.js, lockflow.js, pinpad.js (schermate del blocco)
             autosave.js   appearance.js   dom.js + ui.js
-            views/ (today.js, read.js, archive.js, settings.js, dayhead.js)
+            views/ (today.js, read.js, archive.js, goals.js, goal.js, goalrow.js, strip.js, settings.js, dayhead.js)
 fonts/      Lora e Inter (licenza OFL, con i testi di licenza)
 icons/      icone dell'app          tests/  test automatici          tools/  script di servizio
 ```

@@ -3,6 +3,21 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 3.0 — 14 ottobre 2026 (Fase 3)
+- **Obiettivi** (nuova scheda nella barra in basso, ora di quattro voci): quattro orizzonti (giorno, settimana, mese, anno), un periodo
+  alla volta con le frecce per sfogliare. Ogni obiettivo ha titolo, nota, stato (da fare, fatto, non riuscito, rimandato) e una scheda di dettaglio.
+- **Cascata opzionale:** un obiettivo può contenere sotto-obiettivi (mese → settimane → giorni, anche saltando un livello). Un obiettivo
+  appartiene al periodo in cui comincia.
+- **Striscia «Obiettivi» in Oggi:** gli obiettivi del giorno e della settimana, spuntabili con un tocco (con una piccola animazione morbida),
+  e un campo veloce per aggiungere un obiettivo per oggi.
+- **Chiusura guidata:** per settimane, mesi e anni finiti da non più di 60 giorni e ancora «da fare» compare un riquadro discreto con «Rivedi»:
+  si dice com'è andata e, se si vuole, si scrive una riga di riflessione. Si può saltare o fermarsi quando si vuole. Con «Rimandato» si può
+  riportare l'obiettivo al periodo successivo. Nessun punteggio, nessuna serie, nessuna notifica.
+- Eliminare un obiettivo chiede conferma e non cancella i suoi sotto-obiettivi (restano senza genitore).
+- Gli obiettivi sono inclusi nei backup (anche cifrati) e controllati all'importazione (periodi, stati e genitori coerenti).
+- Corretto un difetto che poteva far comparire la scritta «null» in alcuni punti (ora c'è un controllo automatico che lo impedisce).
+- Nessuna migrazione del database: i dati restano come sono.
+
 ## 2.4 — 14 ottobre 2026
 - «Spazio tra le righe» ora cambia anche la distanza **tra un paragrafo e il successivo** (prima cambiava solo l'interlinea
   dentro un paragrafo, quindi chi scrive una riga per paragrafo non vedeva differenze). Vale per scrittura, lettura ed elenchi.

@@ -122,6 +122,12 @@ export function go(hash, via = 'push') {
   renderFn();
 }
 
+/** Torna alla schermata precedente se c'è; altrimenti va a `hash` (per esempio dopo aver eliminato ciò che si guardava). */
+export function goBackOr(hash) {
+  if (armed && (history.state?.depth ?? 1) > 1) history.back();
+  else go(hash, 'replace');
+}
+
 // ---------- uscita ----------
 
 function stay() {

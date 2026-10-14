@@ -7,7 +7,7 @@ Si passa alla fase successiva solo dopo qualche giorno di uso reale sul telefono
 | --- | --- | --- |
 | 1 | Il diario che funziona: pagina «Oggi», editor, salvataggio automatico, tema carta/scuro, PWA offline, export/import JSON | **Costruita** — in attesa della prova sul telefono (tag `fase-1`) |
 | 2 | Blocco con impronta (WebAuthn) + PIN, calendario mensile, vai a data, cronologia, modalità lettura, ricerca | **Costruita** (versione 2.0) — in attesa della prova sul telefono (tag `fase-2`) |
-| 3 | Obiettivi (giorno, settimana, mese, anno), striscia «Oggi» spuntabile, cascata, chiusura guidata | Da fare |
+| 3 | Obiettivi (giorno, settimana, mese, anno), striscia «Oggi» spuntabile, cascata, chiusura guidata | **Costruita** (versione 3.0) — in attesa della prova sul telefono (tag `fase-3`) |
 | 4 | Moduli attivabili (premeditatio, esame serale, virtù, dicotomia del controllo, umore, negative visualization, citazione) e moduli personalizzati | Da fare |
 | 5 | Ricorrenze, revisioni settimanali e mensili, menzione degli obiettivi nelle voci, export Markdown | Da fare |
 | 6 | Rifiniture secondo l'uso reale (accento, modelli di giornata, trascinamento moduli, filtri, preferiti, cifratura, notifiche) | Da fare |
@@ -18,6 +18,19 @@ Fase 1 pubblicata e installata sull'S25 il 13 ottobre 2026. Prima della Fase 2 s
 
 - Corretti: «null» nell'avviso del backup, cursore coperto dalla barra di formattazione, tasto «indietro» con conferma di uscita.
 - Pulsante «Aggiorna» dell'avviso di aggiornamento ridisegnato (era poco gradevole).
+
+## Scelte concordate (Fase 3)
+
+- Un periodo si sceglie («questa settimana», «ottobre»), non si scrivono le date. Settimana da lunedì.
+- Cascata: il genitore ha un orizzonte più lungo e il suo periodo contiene la data di **inizio** del figlio (una settimana appartiene al mese in cui
+  comincia); si può saltare un livello.
+- Chiusura guidata proposta solo per **settimane, mesi e anni** (mai per i giorni) e solo per periodi finiti da **non più di 60 giorni**.
+  (I due valori stanno in `js/goals-policy.js`.)
+- «Rimandato»: si può riportare l'obiettivo al periodo successivo (copia nuova, l'originale resta). La riflessione è facoltativa.
+- Eliminando un obiettivo, i sotto-obiettivi restano senza genitore.
+- La striscia in Oggi non compare nella modalità lettura dei giorni passati.
+- La menzione degli obiettivi nelle voci del diario resta alla Fase 5.
+- Nessuna migrazione: lo schema del database resta alla versione 1.
 
 ## Scelte concordate (Fase 2)
 

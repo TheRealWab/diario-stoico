@@ -27,6 +27,15 @@ export function append(parent, children) {
   return parent;
 }
 
+/**
+ * Sostituisce tutto il contenuto di `parent`. A differenza di parent.replaceChildren(), i valori vuoti
+ * (null, undefined, false) vengono ignorati invece di comparire come testo «null».
+ */
+export function setChildren(parent, ...children) {
+  parent.replaceChildren();
+  return append(parent, children);
+}
+
 const ICONS = {
   'chevron-left': [['path', { d: 'M15 18l-6-6 6-6' }]],
   'chevron-right': [['path', { d: 'M9 6l6 6-6 6' }]],

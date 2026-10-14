@@ -7,11 +7,13 @@ import { createEditor } from '../editor.js';
 import { LABELS, compareEntries, createEntry, deleteEntry, listEntriesForDay, updateEntry } from '../entries.js';
 import { confirmDialog, toast } from '../ui.js';
 import { dayHead, dayLinks } from './dayhead.js';
+import { buildStrip } from './strip.js';
 
 const LABEL_TEXT = { mattina: 'Mattina', giorno: 'Giorno', sera: 'Sera' };
 
 export async function mountToday({ db, container, date }) {
   const entries = await listEntriesForDay(db, date);
+  const strip = await buildStrip({ db, date });
   const views = new Map(); // id -> { entry, root, saver, editor }
 
   const list = h('div', { class: 'entries' });
@@ -23,6 +25,7 @@ export async function mountToday({ db, container, date }) {
     { class: 'page day' },
     dayHead(date),
     dayLinks(date),
+    strip,
     list,
     empty,
     addBtn,

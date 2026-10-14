@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dayHash, familyOf, isTabRoute, parseRoute, tabHashOf } from '../js/routes.js';
+import { activeTab, dayHash, familyOf, goalHash, goalsHash, isTabRoute, parseRoute, tabHashOf } from '../js/routes.js';
 
 const TODAY = '2026-10-13';
 const parse = (h) => parseRoute(h, TODAY);
@@ -37,6 +37,33 @@ test('dayHash', () => {
   assert.equal(dayHash('2026-10-12', TODAY, { edit: true }), '#/giorno/2026-10-12/modifica');
   assert.equal(dayHash('2026-10-14', TODAY, { edit: true }), '#/giorno/2026-10-14');
   assert.equal(dayHash('2026-10-13', TODAY, { edit: true }), '#/oggi');
+});
+
+test('obiettivi: elenco per orizzonte e periodo, e dettaglio', () => {
+  assert.deepEqual(parse('#/obiettivi'), { name: 'goals', horizon: null, date: null });
+  assert.deepEqual(parse('#/obiettivi/settimana'), { name: 'goals', horizon: 'settimana', date: null });
+  assert.deepEqual(parse('#/obiettivi/mese/2026-09-15'), { name: 'goals', horizon: 'mese', date: '2026-09-15' });
+  assert.deepEqual(parse('#/obiettivo/3f2a9c1e-0b7d-4c55-9e0a-1d2e3f4a5b6c'), { name: 'goal', id: '3f2a9c1e-0b7d-4c55-9e0a-1d2e3f4a5b6c' });
+  for (const h of ['#/obiettivi/secolo', '#/obiettivi/mese/2026-13-01', '#/obiettivi/mese/ieri', '#/obiettivo/', '#/obiettivo/a b']) {
+    assert.equal(parse(h).name, 'today', h);
+  }
+  assert.equal(goalsHash('mese'), '#/obiettivi/mese');
+  assert.equal(goalsHash('mese', '2026-10-01'), '#/obiettivi/mese/2026-10-01');
+  assert.equal(goalHash('abc'), '#/obiettivo/abc');
+});
+
+test('voce della barra: i dettagli lasciano accesa la voce da cui sono stati aperti', () => {
+  const goal = parse('#/obiettivo/abc');
+  const day = parse('#/giorno/2026-10-12');
+  assert.equal(activeTab(goal, { depth: 1 }), '#/obiettivi'); // aperto direttamente
+  assert.equal(activeTab(goal, { depth: 2, parent: 'home' }), '#/oggi'); // dalla striscia di Oggi
+  assert.equal(activeTab(goal, { depth: 3, parent: 'goals' }), '#/obiettivi');
+  assert.equal(activeTab(day, { depth: 3, parent: 'archive' }), '#/archivio');
+  assert.equal(activeTab(day, { depth: 3, parent: 'goals' }), '#/obiettivi');
+  assert.equal(activeTab(day, { depth: 1 }), '#/oggi');
+  assert.equal(activeTab(parse('#/archivio'), { depth: 2, parent: 'home' }), '#/archivio'); // le schede principali si accendono da sole
+  assert.equal(activeTab(parse('#/impostazioni'), undefined), '#/impostazioni');
+  assert.equal(activeTab(parse('#/obiettivi'), { depth: 2 }), '#/obiettivi');
 });
 
 test('tipi di schermata e voce attiva della barra', () => {

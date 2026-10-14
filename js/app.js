@@ -9,11 +9,13 @@ import { hideCover, showCover, showLockScreen } from './lockscreen.js';
 import { shouldRelock } from './lockpolicy.js';
 import { lockState, refreshLockState } from './lockstate.js';
 import { initNavigation, setCurrentHash, settleScroll } from './navigation.js';
-import { parseRoute, tabHashOf } from './routes.js';
+import { activeTab, parseRoute } from './routes.js';
 import { getSettings } from './settings.js';
 import { initToolbar } from './toolbar.js';
 import { toast } from './ui.js';
 import { mountArchive } from './views/archive.js';
+import { mountGoal } from './views/goal.js';
+import { mountGoals } from './views/goals.js';
 import { mountRead } from './views/read.js';
 import { mountSettings } from './views/settings.js';
 import { mountToday } from './views/today.js';
@@ -41,11 +43,9 @@ async function render() {
   current = null;
   if (token !== renderToken || locked) return; // nel frattempo si è cambiata schermata o si è bloccata l'app
 
-  // un giorno aperto dall'archivio lascia acceso «Archivio»
-  const fromArchive = history.state?.depth >= 3 && history.state?.parent === 'archive';
-  const activeTab = fromArchive ? '#/archivio' : tabHashOf(route);
+  const active = activeTab(route, history.state);
   document.querySelectorAll('.tabbar a').forEach((a) => {
-    if (a.getAttribute('href') === activeTab) a.setAttribute('aria-current', 'page');
+    if (a.getAttribute('href') === active) a.setAttribute('aria-current', 'page');
     else a.removeAttribute('aria-current');
   });
 
@@ -54,6 +54,8 @@ async function render() {
     renderedToday = route.name === 'today' ? today : null;
     if (route.name === 'settings') current = await mountSettings({ db, container: view });
     else if (route.name === 'archive') current = await mountArchive({ db, container: view, route });
+    else if (route.name === 'goals') current = await mountGoals({ db, container: view, route });
+    else if (route.name === 'goal') current = await mountGoal({ db, container: view, id: route.id });
     else if (route.mode === 'read') current = await mountRead({ db, container: view, date: route.date });
     else current = await mountToday({ db, container: view, date: route.date });
   } catch (err) {
