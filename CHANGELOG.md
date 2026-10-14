@@ -3,6 +3,11 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 2.3 — 14 ottobre 2026
+- Nuova impostazione **«Spazio tra le righe»** (Impostazioni → Aspetto): compatta, normale, ampia, molto ampia.
+  Vale per tutto il diario (scrittura e lettura) e si somma all'interlinea del carattere scelto. Il livello predefinito è «Normale»,
+  quindi non cambia nulla finché non lo modifichi.
+
 ## 2.2 — 13 ottobre 2026
 - Corretta la finestra della password del backup, che con la tastiera aperta veniva tagliata: ora è più compatta,
   scorre se serve e porta da sola il campo scelto nella parte visibile. Il tasto «Succ.» della tastiera passa al secondo campo.

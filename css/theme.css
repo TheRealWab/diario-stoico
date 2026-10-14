@@ -29,7 +29,10 @@
   --font-serif: 'Lora', Georgia, 'Times New Roman', serif;
   --font-diary: var(--font-serif);
   --diary-size: 1.125rem;
-  --diary-leading: 1.75;
+  /* interlinea = base del carattere + spostamento scelto nelle impostazioni */
+  --leading-base: 1.75;
+  --leading-adjust: 0;
+  --diary-leading: calc(var(--leading-base) + var(--leading-adjust));
 
   /* spaziature */
   --space-1: 0.25rem;
@@ -85,8 +88,13 @@
 
 :root[data-font='sans'] {
   --font-diary: var(--font-ui);
-  --diary-leading: 1.65;
+  --leading-base: 1.65;
 }
+
+:root[data-spacing='s'] { --leading-adjust: -0.25; }
+:root[data-spacing='m'] { --leading-adjust: 0; }
+:root[data-spacing='l'] { --leading-adjust: 0.25; }
+:root[data-spacing='xl'] { --leading-adjust: 0.5; }
 
 :root[data-size='s'] { --diary-size: 1rem; }
 :root[data-size='m'] { --diary-size: 1.125rem; }

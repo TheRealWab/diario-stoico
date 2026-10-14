@@ -9,6 +9,7 @@ export const SETTINGS_ID = 'main';
 export const THEMES = ['carta', 'scuro', 'sistema'];
 export const FONTS = ['serif', 'sans'];
 export const FONT_SIZES = ['s', 'm', 'l', 'xl'];
+export const LINE_SPACINGS = ['s', 'm', 'l', 'xl']; // compatta, normale, ampia, molto ampia
 
 // I campi delle fasi future (moduli, accento) ci sono già: niente migrazione dopo.
 export const DEFAULT_SETTINGS = Object.freeze({
@@ -17,6 +18,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   accent: 'terracotta',
   font: 'serif',
   fontSize: 'm',
+  lineSpacing: 'm',
   lockEnabled: false,
   pinHash: null, // impronta digitale (hash) del PIN, mai il PIN
   webauthn: null, // { id, publicKey, alg } dell'impronta registrata su questo telefono
@@ -24,7 +26,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   lastBackupDate: null, // "AAAA-MM-GG" locale
 });
 
-const ENUMS = { theme: THEMES, font: FONTS, fontSize: FONT_SIZES };
+const ENUMS = { theme: THEMES, font: FONTS, fontSize: FONT_SIZES, lineSpacing: LINE_SPACINGS };
 
 // Dati del blocco: legati a QUESTO telefono. Non finiscono nei backup e un'importazione non li tocca.
 export const LOCK_KEYS = ['lockEnabled', 'pinHash', 'webauthn'];

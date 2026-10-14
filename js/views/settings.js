@@ -17,6 +17,7 @@ import { fingerprintAvailable } from '../webauthn.js';
 const THEME_OPTIONS = [['carta', 'Carta'], ['scuro', 'Scuro'], ['sistema', 'Sistema']];
 const FONT_OPTIONS = [['serif', 'Serif (da libro)'], ['sans', 'Sans (pulito)']];
 const SIZE_OPTIONS = [['s', 'Piccola'], ['m', 'Media'], ['l', 'Grande'], ['xl', 'Molto grande']];
+const SPACING_OPTIONS = [['s', 'Compatta'], ['m', 'Normale'], ['l', 'Ampia'], ['xl', 'Molto ampia']];
 
 let groupCounter = 0;
 
@@ -214,7 +215,8 @@ export async function mountSettings({ db, container }) {
       segmented({ legend: 'Tema', options: THEME_OPTIONS, value: settings.theme, onChange: (v) => change({ theme: v }) }),
       segmented({ legend: 'Carattere del diario', options: FONT_OPTIONS, value: settings.font, onChange: (v) => change({ font: v }) }),
       segmented({ legend: 'Dimensione del testo', options: SIZE_OPTIONS, value: settings.fontSize, onChange: (v) => change({ fontSize: v }) }),
-      h('p', { class: 'preview', 'aria-hidden': 'true' }, 'Scrivere ogni giorno è un modo semplice per capire cosa dipende da noi e cosa no.'),
+      segmented({ legend: 'Spazio tra le righe', options: SPACING_OPTIONS, value: settings.lineSpacing, onChange: (v) => change({ lineSpacing: v }) }),
+      h('p', { class: 'preview', 'aria-hidden': 'true' }, 'Scrivere ogni giorno è un modo semplice per capire cosa dipende da noi e cosa no. Quello che conta è tornare a farlo, anche con poche righe, anche nei giorni difficili.'),
     ),
 
     lockGroup(),

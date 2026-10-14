@@ -1,4 +1,4 @@
-// Tema, carattere e dimensione: si applicano come attributi su <html>;
+// Tema, carattere, dimensione e interlinea: si applicano come attributi su <html>;
 // tutto il resto lo fanno le variabili CSS (css/theme.css).
 
 export const APPEARANCE_KEY = 'ds-appearance';
@@ -13,12 +13,13 @@ export function resolveTheme(theme) {
 }
 
 export function applyAppearance(settings) {
-  current = { theme: settings.theme, font: settings.font, fontSize: settings.fontSize };
+  current = { theme: settings.theme, font: settings.font, fontSize: settings.fontSize, lineSpacing: settings.lineSpacing };
   const root = document.documentElement;
   const theme = resolveTheme(current.theme);
   root.dataset.theme = theme;
   root.dataset.font = current.font;
   root.dataset.size = current.fontSize;
+  root.dataset.spacing = current.lineSpacing;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLORS[theme]);
   try {
     // copia per boot.js, che la legge subito all'avvio per evitare lampi del tema sbagliato
