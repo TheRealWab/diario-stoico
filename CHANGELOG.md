@@ -3,6 +3,12 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 3.2 — 14 ottobre 2026
+- **Gli obiettivi di un giorno non sembrano più spariti:** la striscia «Obiettivi» compare anche nella modalità lettura di un giorno
+  (prima solo in modifica, quindi senza voci scritte non si vedeva niente).
+- Nella scheda Obiettivi, la vista **Settimana** mostra anche, sotto, gli obiettivi dei singoli giorni di quella settimana
+  («Nei singoli giorni»), raggruppati per giorno e spuntabili.
+
 ## 3.1 — 14 ottobre 2026
 - **Aggiunta veloce di un obiettivo (striscia in Oggi):** con la tastiera aperta la barra in basso (Oggi, Archivio…) finiva sopra
   il campo e lo copriva. Ora la barra si toglie mentre scrivi in qualunque campo di testo, e il campo viene portato nella parte visibile.

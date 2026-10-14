@@ -1,9 +1,9 @@
 // Pagina «Obiettivi»: un orizzonte alla volta (giorno, settimana, mese, anno), un periodo alla volta.
 
-import { todayStr } from '../dates.js';
+import { formatLong, todayStr } from '../dates.js';
 import { h, icon } from '../dom.js';
 import { closureDialog, goalFormDialog } from '../goaldialogs.js';
-import { closeGoal, createGoal, listChildren, listGoalsForPeriod, listParentCandidates, listPendingClosure } from '../goals.js';
+import { closeGoal, createGoal, listChildren, listDayGoalsBetween, listGoalsForPeriod, listParentCandidates, listPendingClosure } from '../goals.js';
 import { goalsHash } from '../routes.js';
 import { HORIZONS, HORIZON_LABEL, containsDate, periodFor, periodLabel, shiftPeriod } from '../periods.js';
 import { toast } from '../ui.js';
@@ -27,7 +27,11 @@ export async function mountGoals({ db, container, route }) {
   const period = periodFor(horizon, route.date ?? today);
   const isCurrent = containsDate(period, today);
 
-  const [goals, pending] = await Promise.all([listGoalsForPeriod(db, horizon, period.start), listPendingClosure(db, today)]);
+  const [goals, pending, dayGoals] = await Promise.all([
+    listGoalsForPeriod(db, horizon, period.start),
+    listPendingClosure(db, today),
+    horizon === 'settimana' ? listDayGoalsBetween(db, period.start, period.end) : [], // anche quelli dei singoli giorni
+  ]);
   const childCounts = new Map(await Promise.all(goals.map(async (g) => [g.id, (await listChildren(db, g.id)).length])));
 
   const hrefFor = (start) => goalsHash(horizon, start);
@@ -53,6 +57,24 @@ export async function mountGoals({ db, container, route }) {
     goals.map((g) => goalRow({ db, goal: g, extra: childrenText(childCounts.get(g.id) ?? 0) })),
   );
 
+  // gli obiettivi dei singoli giorni della settimana, raggruppati per giorno
+  const dayDates = [...new Set(dayGoals.map((g) => g.start))];
+  const daysBlock = dayDates.length
+    ? h(
+        'div',
+        { class: 'goals-days' },
+        h('h3', { class: 'goals-sub' }, 'Nei singoli giorni'),
+        dayDates.map((date) =>
+          h(
+            'div',
+            { class: 'strip-group' },
+            h('p', { class: 'strip-label' }, formatLong(date).replace(/ \d{4}$/, '')),
+            h('ul', { class: 'goal-list' }, dayGoals.filter((g) => g.start === date).map((g) => goalRow({ db, goal: g, compact: true }))),
+          ),
+        ),
+      )
+    : null;
+
   const closureCard = pending.length
     ? h(
         'div',
@@ -69,7 +91,7 @@ export async function mountGoals({ db, container, route }) {
       { class: 'page goals' },
       h('h1', { class: 'page-title' }, 'Obiettivi'),
       nav,
-      h('div', { class: 'archive-body' }, head, isCurrent ? null : h('a', { class: 'link-quiet center', href: goalsHash(horizon), 'data-nav': 'replace' }, CURRENT_TEXT[horizon]), closureCard, goals.length ? list : h('p', { class: 'empty' }, EMPTY_TEXT[horizon]), h('button', { type: 'button', class: 'btn btn-add', onclick: addGoal }, icon('plus'), 'Nuovo obiettivo')),
+      h('div', { class: 'archive-body' }, head, isCurrent ? null : h('a', { class: 'link-quiet center', href: goalsHash(horizon), 'data-nav': 'replace' }, CURRENT_TEXT[horizon]), closureCard, goals.length ? list : daysBlock ? null : h('p', { class: 'empty' }, EMPTY_TEXT[horizon]), daysBlock, h('button', { type: 'button', class: 'btn btn-add', onclick: addGoal }, icon('plus'), 'Nuovo obiettivo')),
     ),
   );
 

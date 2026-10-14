@@ -672,6 +672,9 @@ body.lock-open { overflow: hidden; }
 .strip { margin: 0 0 var(--space-5); padding: var(--space-3) var(--space-4) var(--space-2); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
 .strip-head { display: flex; align-items: center; justify-content: space-between; }
 .strip-head h2 { margin: 0; font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-text); }
+.goals-days { margin-top: var(--space-5); }
+.goals-sub { margin: 0; font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-text); }
+.goals-days .goal-row { margin-left: 0; }
 .strip-label { margin: var(--space-2) 0 0; font-size: 0.8125rem; letter-spacing: 0.04em; color: var(--ink-soft); }
 .strip .goal-row { margin-left: calc(var(--space-2) * -1); }
 .strip .hint { margin: var(--space-2) 0 0; }

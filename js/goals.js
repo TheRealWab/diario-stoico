@@ -193,6 +193,12 @@ export async function listGoalsForPeriod(db, horizon, start) {
   return all.filter((g) => g.start === start).sort(byCreation);
 }
 
+/** Gli obiettivi dei singoli giorni tra `start` e `end` (estremi compresi), in ordine di giorno. */
+export async function listDayGoalsBetween(db, start, end) {
+  const all = await getAllByIndex(db, 'goals', 'horizon', 'giorno');
+  return all.filter((g) => g.start >= start && g.start <= end).sort((a, b) => a.start.localeCompare(b.start) || byCreation(a, b));
+}
+
 export async function listChildren(db, parentId) {
   const kids = await getAllByIndex(db, 'goals', 'parentId', parentId);
   return kids.sort((a, b) => rank(b.horizon) - rank(a.horizon) || a.start.localeCompare(b.start) || byCreation(a, b));

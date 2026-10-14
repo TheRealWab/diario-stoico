@@ -4,12 +4,14 @@ import { h } from '../dom.js';
 import { listEntriesForDay } from '../entries.js';
 import { parse, toDom } from '../markdown.js';
 import { dayHead, dayLinks } from './dayhead.js';
+import { buildStrip } from './strip.js';
 
 const LABEL_TEXT = { mattina: 'Mattina', giorno: 'Giorno', sera: 'Sera' };
 
 export async function mountRead({ db, container, date }) {
   const entries = (await listEntriesForDay(db, date)).filter((e) => parse(e.content).length > 0);
   const editHash = `#/giorno/${date}/modifica`;
+  const strip = await buildStrip({ db, date });
 
   const body = entries.length
     ? h(
@@ -32,6 +34,7 @@ export async function mountRead({ db, container, date }) {
       { class: 'page day read' },
       dayHead(date),
       dayLinks(date, { reading: true }),
+      strip,
       h('div', { class: 'read-actions' }, h('a', { class: 'btn btn-secondary', href: editHash, 'data-nav': 'replace' }, entries.length ? 'Modifica' : 'Scrivi')),
       body,
     ),
