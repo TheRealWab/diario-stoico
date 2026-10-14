@@ -3,6 +3,10 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 2.4 — 14 ottobre 2026
+- «Spazio tra le righe» ora cambia anche la distanza **tra un paragrafo e il successivo** (prima cambiava solo l'interlinea
+  dentro un paragrafo, quindi chi scrive una riga per paragrafo non vedeva differenze). Vale per scrittura, lettura ed elenchi.
+
 ## 2.3 — 14 ottobre 2026
 - Nuova impostazione **«Spazio tra le righe»** (Impostazioni → Aspetto): compatta, normale, ampia, molto ampia.
   Vale per tutto il diario (scrittura e lettura) e si somma all'interlinea del carattere scelto. Il livello predefinito è «Normale»,

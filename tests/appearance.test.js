@@ -45,7 +45,22 @@ test('boot.js (che applica l\'aspetto prima del primo disegno) accetta gli stess
   assert.deepEqual(accepted('lineSpacing'), LINE_SPACINGS);
 });
 
-test('ogni livello di interlinea ha la sua regola nel CSS', () => {
+test('ogni livello di interlinea ha la sua regola nel CSS, con spazio tra paragrafi crescente', () => {
   const css = read('css/theme.css');
-  for (const level of LINE_SPACINGS) assert.ok(css.includes(`data-spacing='${level}'`), level);
+  const gaps = LINE_SPACINGS.map((level) => {
+    const rule = new RegExp(`data-spacing='${level}'\\][^}]*--para-gap:\\s*([\\d.]+)em`).exec(css);
+    assert.ok(rule, `manca la regola per ${level}`);
+    return Number(rule[1]);
+  });
+  assert.deepEqual(gaps, [...gaps].sort((a, b) => a - b), 'lo spazio deve crescere da compatta a molto ampia');
+  assert.equal(new Set(gaps).size, gaps.length);
+});
+
+test('scrittura e lettura usano lo spazio tra paragrafi scelto (non un valore fisso)', () => {
+  const css = read('css/app.css');
+  for (const selector of ['.editor p', '.read-body p', '.editor ul, .editor ol', '.read-body ul, .read-body ol']) {
+    const line = css.split('\n').find((l) => l.startsWith(`${selector} {`));
+    assert.ok(line, `manca la regola ${selector}`);
+    assert.ok(line.includes('var(--para-gap)'), `${selector} ha un margine fisso`);
+  }
 });

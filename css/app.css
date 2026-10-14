@@ -215,7 +215,7 @@ button { cursor: pointer; }
   opacity: 0.7;
   pointer-events: none;
 }
-.editor p { margin: 0 0 0.8em; }
+.editor p { margin: 0 0 var(--para-gap); }
 .editor > :last-child { margin-bottom: 0; }
 .editor h2 {
   margin: 1.1em 0 0.35em;
@@ -223,7 +223,7 @@ button { cursor: pointer; }
   font-weight: 600;
   line-height: 1.35;
 }
-.editor ul, .editor ol { margin: 0 0 0.8em; padding-left: 1.4em; }
+.editor ul, .editor ol { margin: 0 0 var(--para-gap); padding-left: 1.4em; }
 .editor li { margin: 0.15em 0; padding-left: 0.2em; }
 .editor li::marker { color: var(--accent); }
 .editor strong, .editor b { font-weight: 700; }
@@ -443,10 +443,10 @@ button { cursor: pointer; }
   line-height: var(--diary-leading);
   overflow-wrap: anywhere;
 }
-.read-body p { margin: 0 0 0.8em; }
+.read-body p { margin: 0 0 var(--para-gap); }
 .read-body > :last-child { margin-bottom: 0; }
 .read-body h2 { margin: 1.1em 0 0.35em; font-size: 1.2em; font-weight: 600; line-height: 1.35; }
-.read-body ul, .read-body ol { margin: 0 0 0.8em; padding-left: 1.4em; }
+.read-body ul, .read-body ol { margin: 0 0 var(--para-gap); padding-left: 1.4em; }
 .read-body li { margin: 0.15em 0; padding-left: 0.2em; }
 .read-body li::marker { color: var(--accent); }
 .read-body strong { font-weight: 700; }

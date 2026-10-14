@@ -33,6 +33,8 @@
   --leading-base: 1.75;
   --leading-adjust: 0;
   --diary-leading: calc(var(--leading-base) + var(--leading-adjust));
+  /* spazio tra un paragrafo e il successivo: cresce con l'interlinea (se ogni riga è un paragrafo, è ciò che si vede) */
+  --para-gap: 0.8em;
 
   /* spaziature */
   --space-1: 0.25rem;
@@ -91,10 +93,10 @@
   --leading-base: 1.65;
 }
 
-:root[data-spacing='s'] { --leading-adjust: -0.25; }
-:root[data-spacing='m'] { --leading-adjust: 0; }
-:root[data-spacing='l'] { --leading-adjust: 0.25; }
-:root[data-spacing='xl'] { --leading-adjust: 0.5; }
+:root[data-spacing='s'] { --leading-adjust: -0.25; --para-gap: 0.4em; }
+:root[data-spacing='m'] { --leading-adjust: 0; --para-gap: 0.8em; }
+:root[data-spacing='l'] { --leading-adjust: 0.25; --para-gap: 1.2em; }
+:root[data-spacing='xl'] { --leading-adjust: 0.5; --para-gap: 1.6em; }
 
 :root[data-size='s'] { --diary-size: 1rem; }
 :root[data-size='m'] { --diary-size: 1.125rem; }
