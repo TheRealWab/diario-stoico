@@ -118,6 +118,13 @@ export function formatLong(s) {
   return `${weekday} ${rest}`;
 }
 
+const shortFormat = new Intl.DateTimeFormat('it-IT', { timeZone: 'UTC', day: 'numeric', month: 'short' });
+
+/** "13 ott" */
+export function formatDayMonthShort(s) {
+  return shortFormat.format(toUtc(s)).replace('.', '');
+}
+
 /** "13 ottobre 2026" */
 export function formatDayMonthYear(s) {
   return restFormat.format(toUtc(s));
