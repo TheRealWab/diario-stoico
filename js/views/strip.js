@@ -42,16 +42,18 @@ export async function buildStrip({ db, date }) {
 
   function openAdder() {
     const input = h('input', { type: 'text', class: 'text-input', maxlength: TITLE_MAX, placeholder: 'Che cosa vuoi fare?', 'aria-label': 'Nuovo obiettivo', enterkeyhint: 'done', autocomplete: 'off' });
-    const ok = h('button', { type: 'button', class: 'btn btn-primary', onclick: add }, 'Aggiungi');
-    adder.replaceChildren(h('div', { class: 'strip-form' }, input, ok));
+    const ok = h('button', { type: 'submit', class: 'btn btn-primary' }, 'Aggiungi');
+    // un vero modulo: il tasto «Fatto» della tastiera del telefono lo invia anche quando non manda un «Invio» riconoscibile
+    const form = h('form', { class: 'strip-form' }, input, ok);
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      add();
+    });
+    adder.replaceChildren(form);
     input.focus();
+    setTimeout(() => input.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300); // dopo che la tastiera è comparsa
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        add();
-      } else if (e.key === 'Escape') {
-        showAddButton();
-      }
+      if (e.key === 'Escape') showAddButton();
     });
     input.addEventListener('blur', () => {
       // si chiude da solo se si esce dal campo senza scrivere nulla (non quando si preme «Aggiungi»)

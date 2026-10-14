@@ -297,7 +297,7 @@ button { cursor: pointer; }
   background: var(--surface);
 }
 .writing .toolbar { display: flex; }
-.writing .tabbar { display: none; }
+.writing .tabbar, .typing .tabbar { display: none; }
 
 .tb-btn {
   min-width: var(--tap);

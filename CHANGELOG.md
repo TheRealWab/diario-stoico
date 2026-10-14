@@ -3,6 +3,11 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 3.1 — 14 ottobre 2026
+- **Aggiunta veloce di un obiettivo (striscia in Oggi):** con la tastiera aperta la barra in basso (Oggi, Archivio…) finiva sopra
+  il campo e lo copriva. Ora la barra si toglie mentre scrivi in qualunque campo di testo, e il campo viene portato nella parte visibile.
+- Il campo è ora un vero modulo: il tasto «Fatto» della tastiera lo invia in modo affidabile (prima l'obiettivo poteva non salvarsi).
+
 ## 3.0 — 14 ottobre 2026 (Fase 3)
 - **Obiettivi** (nuova scheda nella barra in basso, ora di quattro voci): quattro orizzonti (giorno, settimana, mese, anno), un periodo
   alla volta con le frecce per sfogliare. Ogni obiettivo ha titolo, nota, stato (da fare, fatto, non riuscito, rimandato) e una scheda di dettaglio.

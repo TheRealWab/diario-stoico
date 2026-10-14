@@ -80,6 +80,17 @@ export function initToolbar() {
       if (!inEditor(document.activeElement)) setWriting(false);
     }, 0);
   });
+  // Anche negli altri campi di testo (aggiunta veloce di un obiettivo, ricerca…) la barra di navigazione
+  // si toglie: con la tastiera aperta finirebbe sopra il campo, coprendolo.
+  const isTextField = (node) => node instanceof HTMLElement && node.matches('input:not([type=checkbox]):not([type=radio]):not([type=button]), textarea, select');
+  document.addEventListener('focusin', (e) => {
+    if (isTextField(e.target)) document.body.classList.add('typing');
+  });
+  document.addEventListener('focusout', () => {
+    setTimeout(() => {
+      if (!isTextField(document.activeElement)) document.body.classList.remove('typing');
+    }, 0);
+  });
   document.addEventListener('selectionchange', () => {
     if (document.body.classList.contains('writing')) {
       refreshState();
