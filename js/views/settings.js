@@ -8,7 +8,7 @@ import { getSettings, saveSettings } from '../settings.js';
 import { flushAll } from '../autosave.js';
 import { KINDS, canReuseFile, fileChoiceAvailable, forgetFile, getRememberedFile, pickNewFile, rememberFile, writeToFile } from '../file-backup.js';
 import { BackupCryptoError, decryptBackup, encryptBackup, isEncryptedBackup } from '../crypto-backup.js';
-import { askPasswordDialog, exportProtectionDialog } from '../passworddialog.js';
+import { askPasswordDialog, exportDialog } from '../passworddialog.js';
 import { changePin, disableLock, enableLock, toggleFingerprint } from '../lockflow.js';
 import { isLockActive } from '../lockstate.js';
 import { confirmDialog, messageDialog, showDialog, toast } from '../ui.js';
@@ -68,25 +68,12 @@ export async function mountSettings({ db, container }) {
    * scelto con la finestra di sistema. Va fatto subito dopo un tocco, prima del lavoro lungo (la cifratura).
    * Restituisce { cancelled: true } se si annulla, { handle: null } se si ripiega sul download.
    */
-  async function chooseTarget(kind, name) {
+  async function chooseTarget(kind, name, where, previous) {
     if (!fileChoiceAvailable()) return { handle: null, replacing: false };
-    const previous = await getRememberedFile(kind);
-    if (previous) {
-      const answer = await showDialog({
-        title: 'Dove salvare il backup?',
-        body: [h('p', {}, `L’ultima volta l’hai salvato in «${previous.name}».`), h('p', { class: 'hint' }, 'Sostituendolo tieni un solo file, senza doppioni.')],
-        actions: [
-          { label: 'Sostituisci il backup precedente', value: 'replace', kind: 'primary' },
-          { label: 'Scegli un’altra posizione', value: 'choose', kind: 'secondary' },
-          { label: 'Annulla', value: 'cancel', kind: 'ghost' },
-        ],
-      });
-      if (answer !== 'replace' && answer !== 'choose') return { cancelled: true };
-      if (answer === 'replace') {
-        if (await canReuseFile(previous)) return { handle: previous, replacing: true };
-        await forgetFile(kind);
-        toast('Il file di prima non si trova più: scegli dove salvare.');
-      }
+    if (where === 'replace' && previous) {
+      if (await canReuseFile(previous)) return { handle: previous, replacing: true };
+      await forgetFile(kind);
+      toast('Il file di prima non si trova più: scegli dove salvare.');
     }
     try {
       return { handle: await pickNewFile(name), replacing: false };
@@ -98,13 +85,16 @@ export async function mountSettings({ db, container }) {
   }
 
   async function doExport() {
-    const choice = await exportProtectionDialog();
+    // i file scelti le volte prima, uno per tipo di backup (con password / senza)
+    const canChoose = fileChoiceAvailable();
+    const previous = canChoose ? { plain: await getRememberedFile(KINDS.plain), encrypted: await getRememberedFile(KINDS.encrypted) } : {};
+    const choice = await exportDialog({ canChoose, remembered: { plain: previous.plain?.name ?? null, encrypted: previous.encrypted?.name ?? null } });
     if (!choice) return;
     const encrypted = choice.mode === 'encrypted';
     const name = exportFilename(new Date(), { encrypted });
     const kind = encrypted ? KINDS.encrypted : KINDS.plain;
     try {
-      const target = await chooseTarget(kind, name);
+      const target = await chooseTarget(kind, name, choice.where, previous[choice.mode]);
       if (target.cancelled) return;
       await flushAll();
       const file = await buildExport(db);

@@ -3,6 +3,11 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 3.4 — 16 ottobre 2026
+- **Finestra del backup rifatta come in Wallet:** una sola schermata con «Con password / Senza password» e, subito sotto, **«Dove salvarlo»**:
+  «Scegli dove salvare» e, se c'è già un file salvato la volta prima, **«Sostituisci il backup precedente»** (con il nome del file).
+  Prima la scelta stava in una finestra a parte che compariva solo dopo il primo salvataggio, quindi non si vedeva. L'ultima scelta si ricorda.
+
 ## 3.3 — 16 ottobre 2026
 - **Backup: scegli dove salvarlo e sostituisci quello vecchio.** Dove il telefono lo permette, «Esporta backup» apre la finestra «salva con nome»
   e ricorda il file scelto. La volta dopo propone «Sostituisci il backup precedente»: resta un solo file, senza doppioni

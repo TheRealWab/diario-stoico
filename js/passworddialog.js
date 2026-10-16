@@ -1,7 +1,7 @@
 // Finestre per la password del backup cifrato.
 
 import { MIN_PASSWORD_LENGTH } from './crypto-backup.js';
-import { h } from './dom.js';
+import { h, setChildren } from './dom.js';
 
 let counter = 0;
 
@@ -27,46 +27,118 @@ function openDialog(dlg, onClose) {
   dlg.showModal();
 }
 
+const WHERE_KEY = 'ds-backup-where'; // «choose» | «replace»: si ricorda l'ultima scelta (solo comodità, non è nei dati)
+const readWherePref = () => {
+  try {
+    return localStorage.getItem(WHERE_KEY) === 'choose' ? 'choose' : 'replace';
+  } catch {
+    return 'replace';
+  }
+};
+const saveWherePref = (value) => {
+  try {
+    localStorage.setItem(WHERE_KEY, value);
+  } catch {
+    /* facoltativo */
+  }
+};
+
 /**
- * All'esportazione: scegliere la password (due volte, per evitare errori di battitura) oppure esportare in chiaro.
- * Si risolve con { mode: 'encrypted', password } | { mode: 'plain' } | null (annullato).
+ * All'esportazione, tutto in una schermata: con password (due volte, per evitare errori di battitura) o senza,
+ * e dove salvare il file. `canChoose`: il telefono sa far scegliere dove salvare. `remembered`: nomi dei file scelti
+ * l'ultima volta, { plain, encrypted } (null se non ce n'è), per offrire «Sostituisci il backup precedente».
+ * Si risolve con { mode: 'encrypted' | 'plain', password?, where: 'choose' | 'replace' } oppure null (annullato).
  */
-export function exportProtectionDialog() {
+export function exportDialog({ canChoose = false, remembered = {} } = {}) {
   return new Promise((resolve) => {
     let result = null;
+    let mode = 'encrypted';
+    let where = readWherePref();
+    const modeName = `export-mode-${++counter}`;
+    const whereName = `export-where-${++counter}`;
+
     const first = passwordField('Password', 'new-password', 'next');
     const second = passwordField('Ripeti la password', 'new-password', 'done');
     const error = h('p', { class: 'form-error', role: 'alert' });
-    const okBtn = h('button', { type: 'button', class: 'btn btn-primary', onclick: submit }, 'Esporta con password');
-    const plainBtn = h('button', { type: 'button', class: 'btn btn-danger-outline', onclick: () => ((result = { mode: 'plain' }), dlg.close('ok')) }, 'Esporta senza password');
-    const dlg = h(
-      'dialog',
-      { class: 'dialog', 'aria-labelledby': 'export-title' },
-      h('h2', { class: 'dialog-title', id: 'export-title' }, 'Proteggere il backup?'),
-      h('p', { class: 'dialog-text' }, 'Con una password chi trova il file non può leggerlo. Non si può recuperare: se la perdi, il backup è perso.'),
+    const passwordBlock = h(
+      'div',
+      {},
       first.element,
       second.element,
       showToggle([first.input, second.input]),
-      h('p', { class: 'hint' }, `Almeno ${MIN_PASSWORD_LENGTH} caratteri: meglio una frase di più parole.`),
+      h('p', { class: 'hint' }, `Almeno ${MIN_PASSWORD_LENGTH} caratteri: meglio una frase di più parole. Non si può recuperare: se la perdi, il backup è perso.`),
+    );
+    const plainNote = h('p', { class: 'hint', hidden: true }, 'Senza password il file è testo semplice: chiunque lo trovi può leggere il diario.');
+
+    const modeRadio = (value, text) => {
+      const input = h('input', { type: 'radio', name: modeName, value, onchange: () => setMode(value) });
+      input.checked = value === mode;
+      return h('label', {}, input, h('span', {}, text));
+    };
+    const modeControl = h('div', { class: 'segmented' }, modeRadio('encrypted', 'Con password'), modeRadio('plain', 'Senza password'));
+
+    // dove salvarlo: si ridisegna quando cambia il tipo di backup (il file ricordato è uno per tipo)
+    const whereBlock = h('fieldset', { class: 'field' });
+    const effectiveWhere = () => (where === 'replace' && remembered[mode] ? 'replace' : 'choose');
+    function paintWhere() {
+      if (!canChoose) {
+        whereBlock.replaceChildren(h('p', { class: 'hint' }, 'Su questo telefono il file viene salvato nella cartella Download.'));
+        return;
+      }
+      const choice = (value, title, sub) => {
+        const input = h('input', { type: 'radio', name: whereName, value, onchange: () => (where = value) });
+        input.checked = effectiveWhere() === value;
+        return h('label', { class: 'choice' }, input, h('span', {}, h('strong', {}, title), h('small', {}, sub)));
+      };
+      setChildren(
+        whereBlock,
+        h('legend', {}, 'Dove salvarlo'),
+        choice('choose', 'Scegli dove salvare', 'Si apre la scelta della cartella e del nome del file'),
+        remembered[mode] ? choice('replace', 'Sostituisci il backup precedente', `«${remembered[mode]}» viene sostituito: terrai un solo file`) : null,
+      );
+    }
+    function setMode(value) {
+      mode = value;
+      passwordBlock.hidden = mode !== 'encrypted';
+      plainNote.hidden = mode !== 'plain';
+      error.textContent = '';
+      paintWhere();
+    }
+    paintWhere();
+
+    const dlg = h(
+      'dialog',
+      { class: 'dialog', 'aria-labelledby': 'export-title' },
+      h('h2', { class: 'dialog-title', id: 'export-title' }, 'Salvare il backup'),
+      modeControl,
+      passwordBlock,
+      plainNote,
+      whereBlock,
       error,
-      h('div', { class: 'dialog-actions' }, okBtn, plainBtn, h('button', { type: 'button', class: 'btn btn-ghost', onclick: () => dlg.close('') }, 'Annulla')),
+      h('div', { class: 'dialog-actions' }, h('button', { type: 'button', class: 'btn btn-primary', onclick: submit }, 'Crea e salva il backup'), h('button', { type: 'button', class: 'btn btn-ghost', onclick: () => dlg.close('') }, 'Annulla')),
     );
 
     function submit() {
-      const a = first.input.value;
-      if (a.length < MIN_PASSWORD_LENGTH) {
-        error.textContent = `La password deve avere almeno ${MIN_PASSWORD_LENGTH} caratteri.`;
-        return first.input.focus();
+      const finalWhere = effectiveWhere();
+      if (mode === 'plain') {
+        result = { mode, where: finalWhere };
+      } else {
+        const a = first.input.value;
+        if (a.length < MIN_PASSWORD_LENGTH) {
+          error.textContent = `La password deve avere almeno ${MIN_PASSWORD_LENGTH} caratteri.`;
+          return first.input.focus();
+        }
+        if (a !== second.input.value) {
+          error.textContent = 'Le due password non coincidono.';
+          return second.input.focus();
+        }
+        result = { mode, password: a, where: finalWhere };
       }
-      if (a !== second.input.value) {
-        error.textContent = 'Le due password non coincidono.';
-        return second.input.focus();
-      }
-      result = { mode: 'encrypted', password: a };
+      if (canChoose && remembered[mode]) saveWherePref(finalWhere);
       dlg.close('ok');
     }
     dlg.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') {
+      if (e.key === 'Enter' && (e.target === first.input || e.target === second.input)) {
         e.preventDefault();
         if (e.target === first.input) second.input.focus(); // «Succ.» della tastiera: passa al secondo campo
         else submit();

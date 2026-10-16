@@ -119,8 +119,8 @@ I dati vivono solo nel telefono: se lo perdi, lo resetti o disinstalli Chrome/l'
   leggerlo senza la password. L'app lo riapre subito per verificare che la password funzioni.
 - **Senza password:** il file `diario-stoico-AAAA-MM-GG.json` è testo semplice, leggibile da chiunque lo trovi.
 
-**Dove finisce il file.** Dove il telefono lo permette si apre la finestra «salva con nome»: scegli tu cartella e nome. L'app si ricorda
-il file scelto e, la volta dopo, propone **«Sostituisci il backup precedente»**: resta un solo file, senza doppioni. Il backup con password
+**Dove finisce il file.** Nella stessa finestra della password, sotto «Dove salvarlo», scegli «Scegli dove salvare» (si apre la finestra «salva con
+nome» del telefono: cartella e nome sono tuoi). L'app si ricorda il file scelto e, la volta dopo, aggiunge l'opzione **«Sostituisci il backup precedente»**: resta un solo file, senza doppioni. Il backup con password
 e quello senza si ricordano separatamente. Il riferimento al file non è nei dati del diario, quindi non finisce nei backup. Se il file è
 stato spostato o cancellato, l'app te lo dice e ti fa sceglierne uno nuovo. Dove la scelta non è disponibile, il file va in Download come prima.
 
