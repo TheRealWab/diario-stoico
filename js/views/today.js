@@ -4,7 +4,7 @@ import { createSaver } from '../autosave.js';
 import { timeStr } from '../dates.js';
 import { h, icon } from '../dom.js';
 import { createEditor } from '../editor.js';
-import { LABELS, compareEntries, createEntry, deleteEntry, listEntriesForDay, updateEntry } from '../entries.js';
+import { LABELS, compareEntries, createEntry, defaultLabel, deleteEntry, listEntriesForDay, updateEntry } from '../entries.js';
 import { confirmDialog, toast } from '../ui.js';
 import { dayHead, dayLinks } from './dayhead.js';
 import { buildStrip } from './strip.js';
@@ -52,7 +52,7 @@ export async function mountToday({ db, container, date }) {
     const state = h('span', { class: 'save-state', role: 'status', 'aria-live': 'polite' });
     const editor = createEditor({
       markdown: entry.content,
-      label: `Voce delle ${entry.time}`,
+      label: 'Voce del diario',
       onInput: () => saver.schedule(),
     });
     let flashTimer = null;
@@ -91,10 +91,9 @@ export async function mountToday({ db, container, date }) {
       h(
         'header',
         { class: 'entry-head' },
-        h('time', { class: 'entry-time' }, entry.time),
         select,
         state,
-        h('button', { type: 'button', class: 'icon-btn icon-btn-quiet', 'aria-label': `Elimina la voce delle ${entry.time}`, onclick: () => removeEntry(entry.id) }, icon('trash')),
+        h('button', { type: 'button', class: 'icon-btn icon-btn-quiet', 'aria-label': 'Elimina questa voce', onclick: () => removeEntry(entry.id) }, icon('trash')),
       ),
       editor.element,
     );
@@ -103,7 +102,8 @@ export async function mountToday({ db, container, date }) {
 
   async function addEntry() {
     try {
-      const entry = await createEntry(db, { date, time: timeStr() });
+      const time = timeStr();
+      const entry = await createEntry(db, { date, time, label: defaultLabel(time) });
       const view = insertEntry(entry);
       refreshEmpty();
       view.root.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -118,7 +118,7 @@ export async function mountToday({ db, container, date }) {
     const view = views.get(id);
     const ok = await confirmDialog({
       title: 'Eliminare questa voce?',
-      text: `La voce delle ${view.entry.time} verrà cancellata per sempre. Non si può annullare.`,
+      text: 'La voce verrà cancellata per sempre. Non si può annullare.',
       confirmLabel: 'Elimina',
       danger: true,
     });

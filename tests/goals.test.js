@@ -4,7 +4,7 @@ import 'fake-indexeddb/auto';
 import { freshDb } from './helpers.js';
 import { getAll, put } from '../js/db.js';
 import {
-  carryOver, checkGoal, checkGoalTree, closeGoal, countByStatus, createGoal, deleteGoal, getGoal, listChildren,
+  postponeGoal, checkGoal, checkGoalTree, closeGoal, countByStatus, createGoal, deleteGoal, getGoal, listChildren,
   listForDayStrip, listGoalsForPeriod, listParentCandidates, listPendingClosure, toggleDone, updateGoal,
 } from '../js/goals.js';
 import { buildExport, importData, validateImport } from '../js/backup.js';
@@ -90,10 +90,10 @@ test('la spunta alterna da fare ↔ fatto', async () => {
 test('chiusura guidata: lo stato diventa l\'esito, la riflessione è facoltativa e si ripulisce', async () => {
   const db = await freshDb();
   const g = await make(db, { horizon: 'settimana', date: '2026-10-05' });
-  const { goal, carried } = await closeGoal(db, g.id, { outcome: 'non_riuscito', reflection: '  Troppo ambizioso.  ' }, new Date('2026-10-13T10:00:00Z'));
+  const { goal, moved } = await closeGoal(db, g.id, { outcome: 'non_riuscito', reflection: '  Troppo ambizioso.  ' }, new Date('2026-10-13T10:00:00Z'));
   assert.equal(goal.status, 'non_riuscito');
   assert.deepEqual(goal.closure, { outcome: 'non_riuscito', reflection: 'Troppo ambizioso.', date: '2026-10-13' });
-  assert.equal(carried, null);
+  assert.equal(moved, false);
   const noText = await closeGoal(db, (await make(db)).id, { outcome: 'fatto' }, NOW);
   assert.equal(noText.goal.closure.reflection, ''); // nessun campo obbligatorio
   await assert.rejects(closeGoal(db, g.id, { outcome: 'da_fare' }));
@@ -112,36 +112,60 @@ test('cambiare stato dopo la chiusura non cancella la riflessione', async () => 
   db.close();
 });
 
-test('«rimandato» con riporto: nasce una copia nel periodo successivo, l\'originale resta', async () => {
+test('rimandare: l\'obiettivo SI SPOSTA al periodo successivo e sparisce da quello di prima', async () => {
   const db = await freshDb();
-  const october = await make(db, { title: 'Ottobre', horizon: 'mese', date: '2026-10-05' });
-  const g = await make(db, { title: 'Leggere', horizon: 'settimana', date: '2026-10-13', parentId: october.id, note: '20 pagine' });
-  const { goal, carried } = await closeGoal(db, g.id, { outcome: 'rimandato', reflection: 'Settimana piena.', carry: true }, NOW);
-  assert.equal(goal.status, 'rimandato');
-  assert.equal(carried.title, 'Leggere');
-  assert.equal(carried.note, '20 pagine');
-  assert.equal(carried.start, '2026-10-19');
-  assert.equal(carried.status, 'da_fare');
-  assert.equal(carried.closure, null);
-  assert.equal(carried.parentId, october.id); // il mese contiene anche la settimana dopo
-  assert.notEqual(carried.id, g.id);
-  assert.equal((await getGoal(db, g.id)).status, 'rimandato');
+  const day = await make(db, { title: 'Telefonare', date: '2026-10-13', note: 'a Marco' });
+  await toggleDone(db, day.id); // anche se era «fatto», rimandarlo lo rimette da fare
+  const { goal, detached } = await postponeGoal(db, day.id, {}, NOW);
+  assert.equal(detached, 0);
+  assert.equal(goal.id, day.id); // lo stesso obiettivo, non una copia
+  assert.equal(goal.start, '2026-10-14');
+  assert.equal(goal.end, '2026-10-14');
+  assert.equal(goal.status, 'da_fare');
+  assert.equal(goal.note, 'a Marco');
+  assert.deepEqual(checkGoal(await getGoal(db, day.id)), []);
+  assert.equal((await listGoalsForPeriod(db, 'giorno', '2026-10-13')).length, 0); // sparito dal giorno di prima
+  assert.deepEqual((await listGoalsForPeriod(db, 'giorno', '2026-10-14')).map((g) => g.title), ['Telefonare']);
+  assert.equal((await getAll(db, 'goals')).length, 1); // nessun doppione
+  assert.equal((await listForDayStrip(db, '2026-10-14')).day.length, 1);
+  await assert.rejects(postponeGoal(db, 'non-esiste', {}, NOW));
   db.close();
 });
 
-test('riporto: il genitore si perde se non contiene il nuovo periodo; i giorni passano a domani', async () => {
+test('«rimandato» nella chiusura guidata: sposta l\'obiettivo e ricorda com\'è andata', async () => {
+  const db = await freshDb();
+  const october = await make(db, { title: 'Ottobre', horizon: 'mese', date: '2026-10-05' });
+  const g = await make(db, { title: 'Leggere', horizon: 'settimana', date: '2026-10-13', parentId: october.id });
+  const { goal, moved } = await closeGoal(db, g.id, { outcome: 'rimandato', reflection: 'Settimana piena.' }, NOW);
+  assert.equal(moved, true);
+  assert.equal(goal.start, '2026-10-19');
+  assert.equal(goal.status, 'da_fare');
+  assert.deepEqual(goal.closure, { outcome: 'rimandato', reflection: 'Settimana piena.', date: '2026-10-13' });
+  assert.equal(goal.parentId, october.id); // il mese contiene anche la settimana dopo
+  assert.equal((await listGoalsForPeriod(db, 'settimana', '2026-10-12')).length, 0);
+  assert.equal((await getAll(db, 'goals')).length, 2); // mese + la settimana spostata
+  const justDone = await closeGoal(db, (await make(db)).id, { outcome: 'fatto' }, NOW);
+  assert.equal(justDone.moved, false); // lo spostamento vale solo per «rimandato»
+  assert.equal(justDone.goal.status, 'fatto');
+  db.close();
+});
+
+test('rimandare: il genitore si perde se non contiene il nuovo periodo; i sotto-obiettivi restano liberi', async () => {
   const db = await freshDb();
   const october = await make(db, { title: 'Ottobre', horizon: 'mese', date: '2026-10-05' });
   const lastWeek = await make(db, { horizon: 'settimana', date: '2026-10-26', parentId: october.id });
-  const next = await carryOver(db, lastWeek.id, NOW); // 2 novembre: fuori da ottobre
-  assert.equal(next.start, '2026-11-02');
-  assert.equal(next.parentId, null);
-  const day = await make(db, { date: '2026-10-31' });
-  assert.equal((await carryOver(db, day.id, NOW)).start, '2026-11-01');
-  const noCarry = await closeGoal(db, (await make(db)).id, { outcome: 'rimandato', carry: false }, NOW);
-  assert.equal(noCarry.carried, null);
-  const justDone = await closeGoal(db, (await make(db)).id, { outcome: 'fatto', carry: true }, NOW);
-  assert.equal(justDone.carried, null); // il riporto ha senso solo per «rimandato»
+  const child = await make(db, { title: 'Martedì', date: '2026-10-27', parentId: lastWeek.id });
+  const { goal, detached } = await postponeGoal(db, lastWeek.id, {}, NOW); // 2 novembre: fuori da ottobre
+  assert.equal(goal.start, '2026-11-02');
+  assert.equal(goal.parentId, null);
+  assert.equal(detached, 1);
+  const kept = await getGoal(db, child.id);
+  assert.equal(kept.parentId, null); // resta dov'era (27 ottobre), ma senza genitore
+  assert.equal(kept.start, '2026-10-27');
+  // tutto resta coerente: l'albero passa i controlli del backup
+  const all = await getAll(db, 'goals');
+  assert.deepEqual(checkGoalTree(all), []);
+  for (const g of all) assert.deepEqual(checkGoal(g), []);
   db.close();
 });
 
@@ -259,9 +283,9 @@ test('backup: gli obiettivi (con cascata e chiusure) tornano identici', async ()
   const db = await freshDb();
   const month = await make(db, { title: 'Mese', horizon: 'mese', date: '2026-10-05' });
   const wk = await make(db, { title: 'Sett', horizon: 'settimana', date: '2026-10-13', parentId: month.id });
-  await closeGoal(db, wk.id, { outcome: 'rimandato', reflection: 'Troppo da fare.', carry: true }, NOW);
+  await closeGoal(db, wk.id, { outcome: 'rimandato', reflection: 'Troppo da fare.' }, NOW);
   const file = JSON.parse(JSON.stringify(await buildExport(db)));
-  assert.equal(file.data.goals.length, 3);
+  assert.equal(file.data.goals.length, 2);
   const check = validateImport(file);
   assert.ok(check.ok, check.errors.join());
 

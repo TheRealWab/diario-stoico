@@ -126,15 +126,14 @@ export function subGoalDialog(parent) {
 /**
  * Chiusura guidata di un obiettivo: com'è andata + una riga facoltativa. Nessun punteggio.
  * `flow` ({ index, total }) la trasforma in un passo di una sequenza (con «Salta» e «Basta per ora»).
- * Restituisce { action: 'save', outcome, reflection, carry } | { action: 'skip' } | { action: 'stop' }.
+ * Restituisce { action: 'save', outcome, reflection } | { action: 'skip' } | { action: 'stop' }.
  * (Annullare una chiusura singola equivale a «stop».)
  */
 export function closureDialog({ goal, flow = null }) {
   let outcome = goal.closure?.outcome ?? null;
   let action = 'stop';
   const name = `outcome-${uid()}`;
-  const carryBox = h('input', { type: 'checkbox', checked: true });
-  const carryRow = h('label', { class: 'check-row', hidden: true }, carryBox, h('span', {}, `Riporta questo obiettivo ${NEXT_PERIOD_TEXT[goal.horizon]}`));
+  const carryRow = h('p', { class: 'hint', hidden: true }, `Scegliendo «Rimandato» l’obiettivo si sposta ${NEXT_PERIOD_TEXT[goal.horizon]}.`);
   const saveBtn = h('button', { type: 'button', class: 'btn btn-primary', disabled: outcome === null, onclick: () => ((action = 'save'), dlg.close('ok')) }, flow && flow.index < flow.total - 1 ? 'Salva e continua' : 'Salva');
   const reflection = textArea('Una riga su com’è andata (facoltativa)', { maxlength: REFLECTION_MAX, placeholder: 'Che cosa ti porti via da questo periodo?' }, goal.closure?.reflection ?? '');
 
@@ -180,7 +179,7 @@ export function closureDialog({ goal, flow = null }) {
   );
   return present(dlg, () =>
     action === 'save'
-      ? { action: 'save', outcome, reflection: reflection.input.value, carry: outcome === 'rimandato' && carryBox.checked }
+      ? { action: 'save', outcome, reflection: reflection.input.value }
       : { action },
   ).then((result) => result ?? { action: 'stop' });
 }

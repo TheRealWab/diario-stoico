@@ -10,7 +10,7 @@ server, nessun tracciamento.
 
 - **Obiettivi** (nuova scheda): giorno, settimana, mese e anno, con spunta, cascata e chiusura guidata (vedi «Gli obiettivi» più sotto).
 - **Striscia degli obiettivi** nella pagina di Oggi, con gli obiettivi del giorno e della settimana spuntabili con un tocco.
-- Pagina **Oggi** con la data in grande, più voci per giorno con l'ora, etichetta facoltativa (mattina, giorno, sera).
+- Pagina **Oggi** con la data in grande, più voci per giorno, ognuna con la sua parte del giorno (mattina, giorno, sera; niente ora).
 - Frecce per andare al giorno precedente e successivo. I giorni passati si aprono in **lettura** (pulita, a tutta pagina) con un tocco su «Modifica» per scrivere.
 - Editor semplice: grassetto, corsivo, titoletti, elenchi puntati e numerati. La barra degli strumenti compare solo mentre scrivi.
 - Salvataggio automatico: non c'è un pulsante «salva».
@@ -32,7 +32,8 @@ server, nessun tracciamento.
   discreto con «Rivedi». Si sceglie com'è andata (fatto, non riuscito, rimandato) e, se vuoi, si scrive una riga. Nessun punteggio, nessuna
   notifica, nessuna serie di giorni. Si può **saltare** un obiettivo o fermarsi con «Basta per ora». Vale solo per **settimane, mesi e anni**
   (mai per i singoli giorni) e solo per i periodi finiti da **non più di 60 giorni**: nessun arretrato che si accumula.
-- **Rimandato:** si può **riportare** l'obiettivo al periodo successivo (nasce una copia nuova; l'originale resta «rimandato»).
+- **Rimandare:** il pulsante «Rimanda a domani» (o alla prossima settimana, al prossimo mese…) **sposta** l'obiettivo al periodo successivo:
+  sparisce dal giorno di prima e torna «da fare», senza copie. Vale anche per «Rimandato» nella chiusura guidata.
 - **Eliminare** un obiettivo chiede conferma; i suoi sotto-obiettivi **restano**, senza genitore.
 - Nessuna migrazione del database: i dati restano come sono. Gli obiettivi entrano nei backup e vengono controllati all'importazione.
 
@@ -117,6 +118,11 @@ I dati vivono solo nel telefono: se lo perdi, lo resetti o disinstalli Chrome/l'
   `diario-stoico-AAAA-MM-GG-cifrato.json` finisce nella cartella Download e **non rivela nulla del diario**: chi lo trova non può
   leggerlo senza la password. L'app lo riapre subito per verificare che la password funzioni.
 - **Senza password:** il file `diario-stoico-AAAA-MM-GG.json` è testo semplice, leggibile da chiunque lo trovi.
+
+**Dove finisce il file.** Dove il telefono lo permette si apre la finestra «salva con nome»: scegli tu cartella e nome. L'app si ricorda
+il file scelto e, la volta dopo, propone **«Sostituisci il backup precedente»**: resta un solo file, senza doppioni. Il backup con password
+e quello senza si ricordano separatamente. Il riferimento al file non è nei dati del diario, quindi non finisce nei backup. Se il file è
+stato spostato o cancellato, l'app te lo dice e ti fa sceglierne uno nuovo. Dove la scelta non è disponibile, il file va in Download come prima.
 
 **La password non è salvata da nessuna parte e non si può recuperare.** Se la perdi, quel backup è perso per sempre. Tienila in
 un gestore di password o scritta in un posto sicuro, separata dal file. Un file cifrato non «chiede» la password da solo:

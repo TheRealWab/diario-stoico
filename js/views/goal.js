@@ -3,7 +3,7 @@
 import { formatLong } from '../dates.js';
 import { h, icon } from '../dom.js';
 import { closureDialog, goalFormDialog, subGoalDialog } from '../goaldialogs.js';
-import { STATUSES, STATUS_LABEL, closeGoal, countByStatus, createGoal, deleteGoal, getGoal, listChildren, listParentCandidates, updateGoal } from '../goals.js';
+import { STATUSES, STATUS_LABEL, closeGoal, countByStatus, createGoal, deleteGoal, getGoal, listChildren, listParentCandidates, postponeGoal, updateGoal } from '../goals.js';
 import { goBackOr } from '../navigation.js';
 import { goalHash, goalsHash } from '../routes.js';
 import { HORIZON_LABEL, NEXT_PERIOD_TEXT, periodLabel } from '../periods.js';
@@ -33,7 +33,8 @@ export async function mountGoal({ db, container, id }) {
     h(
       'div',
       { class: 'segmented status-choice' },
-      STATUSES.map((s) => {
+      // «Rimandato» non è più uno stato da scegliere (sposta l'obiettivo, vedi il pulsante «Rimanda»); si mostra solo se c'è già
+      STATUSES.filter((s) => s !== 'rimandato' || goal.status === 'rimandato').map((s) => {
         const input = h('input', { type: 'radio', name: radioName, value: s, onchange: () => saveStatus(s) });
         input.checked = s === goal.status;
         return h('label', {}, input, h('span', {}, STATUS_LABEL[s]));
@@ -73,7 +74,12 @@ export async function mountGoal({ db, container, id }) {
       statusControl,
       goal.note ? h('p', { class: 'goal-note' }, goal.note) : null,
       closureBox,
-      h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn btn-secondary', onclick: closeIt }, goal.closure ? 'Rivedi la chiusura' : 'Com’è andata?')),
+      h(
+        'div',
+        { class: 'row' },
+        h('button', { type: 'button', class: 'btn btn-secondary', onclick: closeIt }, goal.closure ? 'Rivedi la chiusura' : 'Com’è andata?'),
+        h('button', { type: 'button', class: 'btn btn-secondary', onclick: postpone }, `Rimanda ${NEXT_PERIOD_TEXT[goal.horizon]}`),
+      ),
       childrenSection,
       h('div', { class: 'row goal-actions' }, h('button', { type: 'button', class: 'btn btn-secondary', onclick: edit }, 'Modifica'), h('button', { type: 'button', class: 'btn btn-secondary btn-danger-outline', onclick: remove }, 'Elimina')),
     ),
@@ -108,11 +114,25 @@ export async function mountGoal({ db, container, id }) {
     const answer = await closureDialog({ goal });
     if (answer.action !== 'save') return;
     try {
-      const { carried } = await closeGoal(db, goal.id, answer);
-      if (carried) toast(`Riportato ${NEXT_PERIOD_TEXT[goal.horizon]}.`);
+      const { moved, detached } = await closeGoal(db, goal.id, answer);
+      if (moved) toast(movedText(detached));
     } catch (err) {
       console.error(err);
       toast('Non riesco a salvare la chiusura.');
+    }
+    await rerender();
+  }
+
+  const movedText = (detached) => `Spostato ${NEXT_PERIOD_TEXT[goal.horizon]}.${detached ? ` ${detached === 1 ? 'Un sotto-obiettivo è rimasto' : `${detached} sotto-obiettivi sono rimasti`} nel periodo di prima, senza genitore.` : ''}`;
+
+  // «Rimanda»: l'obiettivo si sposta al periodo successivo e sparisce da quello di prima
+  async function postpone() {
+    try {
+      const { detached } = await postponeGoal(db, goal.id);
+      toast(movedText(detached));
+    } catch (err) {
+      console.error(err);
+      toast('Non riesco a rimandare l’obiettivo.');
     }
     await rerender();
   }

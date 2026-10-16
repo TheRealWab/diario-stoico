@@ -172,9 +172,12 @@ export async function importData(db, data, mode) {
   return result;
 }
 
+/** Il testo del file di backup (lo stesso, scaricato o scritto su un file scelto). */
+export const backupText = (obj) => JSON.stringify(obj, null, 2);
+
 /** Fa scaricare il file (solo nel browser). */
 export function downloadJson(obj, filename) {
-  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+  const blob = new Blob([backupText(obj)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

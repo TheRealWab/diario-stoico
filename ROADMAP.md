@@ -26,7 +26,7 @@ Fase 1 pubblicata e installata sull'S25 il 13 ottobre 2026. Prima della Fase 2 s
   comincia); si può saltare un livello.
 - Chiusura guidata proposta solo per **settimane, mesi e anni** (mai per i giorni) e solo per periodi finiti da **non più di 60 giorni**.
   (I due valori stanno in `js/goals-policy.js`.)
-- «Rimandato»: si può riportare l'obiettivo al periodo successivo (copia nuova, l'originale resta). La riflessione è facoltativa.
+- «Rimandato»: l'obiettivo **si sposta** al periodo successivo e torna «da fare» (dalla 3.3; prima nasceva una copia). La riflessione è facoltativa.
 - Eliminando un obiettivo, i sotto-obiettivi restano senza genitore.
 - La striscia in Oggi non compare nella modalità lettura dei giorni passati.
 - La menzione degli obiettivi nelle voci del diario resta alla Fase 5.

@@ -6,6 +6,15 @@ import { nowIso, uuid } from './util.js';
 
 export const LABELS = ['mattina', 'giorno', 'sera']; // l'assenza di etichetta è null
 
+/**
+ * La parte del giorno suggerita per una nuova voce, dall'ora in cui si scrive: mattina fino alle 12, giorno fino alle 18,
+ * poi sera. È solo un punto di partenza: si cambia con un tocco. (L'ora esatta non si mostra più, ma resta salvata.)
+ */
+export function defaultLabel(time) {
+  const hour = Number(String(time).slice(0, 2));
+  return hour < 12 ? 'mattina' : hour < 18 ? 'giorno' : 'sera';
+}
+
 function checkLabel(label) {
   if (label !== null && !LABELS.includes(label)) throw new Error(`Etichetta non valida: ${label}`);
 }
@@ -19,8 +28,11 @@ export async function createEntry(db, { date, time, label = null, content = '' }
   return put(db, 'entries', entry);
 }
 
+const partOfDay = (e) => LABELS.indexOf(e.label ?? defaultLabel(e.time));
+
+/** Ordine delle voci di un giorno: mattina, giorno, sera (senza etichetta: in base all'ora), poi per momento di scrittura. */
 export function compareEntries(a, b) {
-  return a.time.localeCompare(b.time) || a.createdAt.localeCompare(b.createdAt);
+  return partOfDay(a) - partOfDay(b) || a.time.localeCompare(b.time) || a.createdAt.localeCompare(b.createdAt);
 }
 
 export async function listEntriesForDay(db, date) {

@@ -3,6 +3,18 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 3.3 — 16 ottobre 2026
+- **Backup: scegli dove salvarlo e sostituisci quello vecchio.** Dove il telefono lo permette, «Esporta backup» apre la finestra «salva con nome»
+  e ricorda il file scelto. La volta dopo propone «Sostituisci il backup precedente»: resta un solo file, senza doppioni
+  (`… (1).json`). Il file ricordato non finisce mai nei backup. Il backup con password e quello senza si ricordano separatamente,
+  così un file «cifrato» non viene mai sostituito per sbaglio con un contenuto in chiaro. Dove la scelta non c'è, si salva in Download come prima.
+- **Rimandare un obiettivo lo sposta davvero:** «Rimanda a domani» (o alla prossima settimana, al prossimo mese…) nella scheda dell'obiettivo
+  lo sposta al periodo successivo: sparisce dal giorno di prima e torna «da fare». Non nasce più una copia. Lo stesso vale per «Rimandato»
+  nella chiusura guidata. Se l'obiettivo aveva sotto-obiettivi, restano dov'erano, senza genitore.
+- **Voci senza l'ora:** resta solo la divisione Mattina / Giorno / Sera. Una nuova voce parte con la parte del giorno giusta (fino alle 12 mattina,
+  fino alle 18 giorno, poi sera), che si cambia con un tocco. Le voci sono in ordine mattina → giorno → sera. L'ora resta salvata nei dati ma non si vede più.
+- Nessuna migrazione del database.
+
 ## 3.2 — 14 ottobre 2026
 - **Gli obiettivi di un giorno non sembrano più spariti:** la striscia «Obiettivi» compare anche nella modalità lettura di un giorno
   (prima solo in modifica, quindi senza voci scritte non si vedeva niente).

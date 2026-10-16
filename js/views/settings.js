@@ -1,11 +1,12 @@
 // Pagina "Impostazioni": aspetto, backup e informazioni.
 
 import { applyAppearance } from '../appearance.js';
-import { buildExport, downloadJson, exportFilename, importData, planMerge, validateImport } from '../backup.js';
+import { backupText, buildExport, downloadJson, exportFilename, importData, planMerge, validateImport } from '../backup.js';
 import { daysAgoLabel, formatDayMonthYear, todayStr } from '../dates.js';
 import { h } from '../dom.js';
 import { getSettings, saveSettings } from '../settings.js';
 import { flushAll } from '../autosave.js';
+import { KINDS, canReuseFile, fileChoiceAvailable, forgetFile, getRememberedFile, pickNewFile, rememberFile, writeToFile } from '../file-backup.js';
 import { BackupCryptoError, decryptBackup, encryptBackup, isEncryptedBackup } from '../crypto-backup.js';
 import { askPasswordDialog, exportProtectionDialog } from '../passworddialog.js';
 import { changePin, disableLock, enableLock, toggleFingerprint } from '../lockflow.js';
@@ -62,26 +63,77 @@ export async function mountSettings({ db, container }) {
 
   const fileInput = h('input', { type: 'file', accept: 'application/json,.json', hidden: true, onchange: () => onFilePicked(fileInput) });
 
+  /**
+   * Dove scrivere il backup, dove il browser lo permette: il file della volta prima (da sostituire) oppure uno
+   * scelto con la finestra di sistema. Va fatto subito dopo un tocco, prima del lavoro lungo (la cifratura).
+   * Restituisce { cancelled: true } se si annulla, { handle: null } se si ripiega sul download.
+   */
+  async function chooseTarget(kind, name) {
+    if (!fileChoiceAvailable()) return { handle: null, replacing: false };
+    const previous = await getRememberedFile(kind);
+    if (previous) {
+      const answer = await showDialog({
+        title: 'Dove salvare il backup?',
+        body: [h('p', {}, `L’ultima volta l’hai salvato in «${previous.name}».`), h('p', { class: 'hint' }, 'Sostituendolo tieni un solo file, senza doppioni.')],
+        actions: [
+          { label: 'Sostituisci il backup precedente', value: 'replace', kind: 'primary' },
+          { label: 'Scegli un’altra posizione', value: 'choose', kind: 'secondary' },
+          { label: 'Annulla', value: 'cancel', kind: 'ghost' },
+        ],
+      });
+      if (answer !== 'replace' && answer !== 'choose') return { cancelled: true };
+      if (answer === 'replace') {
+        if (await canReuseFile(previous)) return { handle: previous, replacing: true };
+        await forgetFile(kind);
+        toast('Il file di prima non si trova più: scegli dove salvare.');
+      }
+    }
+    try {
+      return { handle: await pickNewFile(name), replacing: false };
+    } catch (err) {
+      if (err?.name === 'AbortError') return { cancelled: true }; // ha chiuso la finestra senza scegliere: non cambia nulla
+      console.warn('Scelta del file non riuscita, si usa il download:', err);
+      return { handle: null, replacing: false };
+    }
+  }
+
   async function doExport() {
     const choice = await exportProtectionDialog();
     if (!choice) return;
+    const encrypted = choice.mode === 'encrypted';
+    const name = exportFilename(new Date(), { encrypted });
+    const kind = encrypted ? KINDS.encrypted : KINDS.plain;
     try {
+      const target = await chooseTarget(kind, name);
+      if (target.cancelled) return;
       await flushAll();
       const file = await buildExport(db);
       let out = file;
-      let name = exportFilename();
-      if (choice.mode === 'encrypted') {
+      if (encrypted) {
         toast('Cifro il backup…', { sticky: true });
         out = await encryptBackup(file, choice.password);
         // prova subito a riaprirlo: un backup che poi non si apre sarebbe peggio di nessun backup
         const check = await decryptBackup(out, choice.password);
         if (check.exportedAt !== file.exportedAt) throw new Error('verifica del backup cifrato non riuscita');
-        name = exportFilename(new Date(), { encrypted: true });
       }
-      downloadJson(out, name);
+      let where;
+      if (target.handle) {
+        try {
+          await writeToFile(target.handle, backupText(out));
+        } catch (err) {
+          console.error(err);
+          toast('Non sono riuscito a scrivere il file. Riprova, magari scegliendo un’altra posizione.');
+          return;
+        }
+        await rememberFile(kind, target.handle);
+        where = `${target.replacing ? 'sostituito' : 'salvato'}: «${target.handle.name}»`;
+      } else {
+        downloadJson(out, name);
+        where = 'salvato nella cartella Download';
+      }
       settings = await getSettings(db);
       refreshBackupNote();
-      toast(choice.mode === 'encrypted' ? 'Backup cifrato salvato nella cartella Download.' : 'Backup salvato nella cartella Download (senza password).');
+      toast(`${encrypted ? 'Backup cifrato' : 'Backup'} ${where}${encrypted ? '' : ' (senza password)'}.`);
     } catch (err) {
       console.error(err);
       toast('Non sono riuscito a creare il backup.');
@@ -226,6 +278,7 @@ export async function mountSettings({ db, container }) {
       { class: 'group' },
       h('h2', {}, 'Dati'),
       h('p', { class: 'hint' }, 'Il diario vive solo su questo telefono. Un backup ogni tanto ti protegge se lo perdi o lo cambi.'),
+      fileChoiceAvailable() ? h('p', { class: 'hint' }, 'Puoi scegliere dove salvare il backup e, le volte dopo, sostituire quello precedente: resta un solo file, senza doppioni.') : null,
       h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn btn-primary', onclick: doExport }, 'Esporta backup (JSON)'), backupNote),
       h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn btn-secondary', onclick: () => fileInput.click() }, 'Importa da file…'), fileInput),
     ),

@@ -130,33 +130,67 @@ export async function toggleDone(db, id, now = new Date()) {
   return updateGoal(db, id, { status: goal.status === 'fatto' ? 'da_fare' : 'fatto' }, now);
 }
 
-/** Riporta un obiettivo al periodo successivo (copia nuova, stesso titolo e nota; l'originale resta com'è). */
-export async function carryOver(db, id, now = new Date()) {
-  const goal = await get(db, 'goals', id);
-  if (!goal) throw new Error('Obiettivo non trovato.');
-  const next = shiftPeriod(goal.horizon, goal.start, 1);
-  let parentId = null;
-  if (goal.parentId) {
-    const parent = await get(db, 'goals', goal.parentId);
-    // il genitore si tiene solo se contiene anche il nuovo periodo
-    if (parent && canBeParent({ horizon: goal.horizon, start: next.start }, parent)) parentId = parent.id;
-  }
-  return createGoal(db, { title: goal.title, horizon: goal.horizon, date: next.start, parentId, note: goal.note }, now);
+/**
+ * Rimanda un obiettivo: lo SPOSTA al periodo successivo (il giorno dopo, la settimana dopo…). Sparisce dal periodo
+ * di prima e torna «da fare». Il genitore si tiene solo se contiene anche il nuovo periodo; i sotto-obiettivi che
+ * non ci stanno più dentro restano senza genitore. Tutto in una sola transazione.
+ * `closure` (facoltativo) è la chiusura da ricordare. Restituisce { goal, detached }.
+ */
+export function postponeGoal(db, id, { closure = null } = {}, now = new Date()) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('goals', 'readwrite');
+    const store = tx.objectStore('goals');
+    let outcome;
+    let failure = null;
+    const fail = (message) => {
+      failure = new Error(message);
+      tx.abort();
+    };
+    store.get(id).onsuccess = (e) => {
+      const goal = e.target.result;
+      if (!goal) return fail('Obiettivo non trovato.');
+      const next = shiftPeriod(goal.horizon, goal.start, 1);
+      const moved = { ...goal, start: next.start, end: next.end, status: 'da_fare', updatedAt: nowIso(now) };
+      if (closure) moved.closure = closure;
+      const finish = (parent) => {
+        moved.parentId = parent && canBeParent(moved, parent) ? parent.id : null;
+        store.index('parentId').getAll(id).onsuccess = (ev) => {
+          let detached = 0;
+          for (const child of ev.target.result) {
+            if (canBeParent(child, moved)) continue;
+            store.put({ ...child, parentId: null, updatedAt: nowIso(now) });
+            detached++;
+          }
+          store.put(moved);
+          outcome = { goal: moved, detached };
+        };
+      };
+      if (goal.parentId) store.get(goal.parentId).onsuccess = (ev) => finish(ev.target.result ?? null);
+      else finish(null);
+    };
+    tx.oncomplete = () => resolve(outcome);
+    tx.onerror = () => reject(failure ?? tx.error);
+    tx.onabort = () => reject(failure ?? tx.error ?? new Error('Transazione annullata.'));
+  });
 }
 
 /**
  * Chiusura guidata: com'è andata (+ una riga facoltativa). Lo stato diventa l'esito.
- * Con esito «rimandato» e `carry`, nasce anche una copia nel periodo successivo.
+ * Con esito «rimandato» l'obiettivo si sposta al periodo successivo (vedi postponeGoal) e si ricorda com'è andata.
+ * Restituisce { goal, moved, detached }.
  */
-export async function closeGoal(db, id, { outcome, reflection = '', carry = false }, now = new Date()) {
+export async function closeGoal(db, id, { outcome, reflection = '' }, now = new Date()) {
   if (!OUTCOMES.includes(outcome)) throw new Error(`Esito non valido: ${outcome}`);
   const closure = { outcome, reflection: String(reflection ?? '').trim().slice(0, REFLECTION_MAX), date: todayStr(now) };
+  if (outcome === 'rimandato') {
+    const { goal, detached } = await postponeGoal(db, id, { closure }, now);
+    return { goal, moved: true, detached };
+  }
   const goal = await update(db, 'goals', id, (old) => {
     if (!old) throw new Error('Obiettivo non trovato.');
     return { ...old, status: outcome, closure, updatedAt: nowIso(now) };
   });
-  const carried = outcome === 'rimandato' && carry ? await carryOver(db, id, now) : null;
-  return { goal, carried };
+  return { goal, moved: false, detached: 0 };
 }
 
 /**

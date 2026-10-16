@@ -159,16 +159,6 @@ button { cursor: pointer; }
   min-height: var(--tap);
   margin-bottom: var(--space-1);
 }
-.entry-time {
-  font-variant-numeric: tabular-nums;
-  font-size: 0.875rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--ink-soft);
-  transition: color var(--dur) var(--ease);
-}
-.entry:focus-within .entry-time { color: var(--accent-text); }
-
 .label-select {
   min-height: var(--tap);
   max-width: 11rem;

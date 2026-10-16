@@ -21,7 +21,7 @@ export async function mountRead({ db, container, date }) {
           h(
             'article',
             { class: 'entry entry-read' },
-            h('header', { class: 'entry-head' }, h('time', { class: 'entry-time' }, e.time), e.label ? h('span', { class: 'entry-label' }, LABEL_TEXT[e.label]) : null),
+            e.label ? h('header', { class: 'entry-head' }, h('span', { class: 'entry-label' }, LABEL_TEXT[e.label])) : null,
             h('div', { class: 'read-body prose' }, toDom(parse(e.content), document)),
           ),
         ),

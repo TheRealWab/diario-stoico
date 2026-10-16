@@ -184,7 +184,7 @@ async function mountSearch(db, body, today) {
           'a',
           { class: 'result', href: dayHash(entry.date, today) },
           h('span', { class: 'day-card-date' }, formatLong(entry.date)),
-          h('span', { class: 'day-card-meta' }, entry.time + (entry.label ? ` · ${LABEL_TEXT[entry.label]}` : '')),
+          entry.label ? h('span', { class: 'day-card-meta' }, LABEL_TEXT[entry.label]) : null,
           h('span', { class: 'day-card-preview' }, parts.map((p) => (p.match ? h('mark', {}, p.text) : p.text))),
         ),
       );

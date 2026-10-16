@@ -4,7 +4,7 @@ import 'fake-indexeddb/auto';
 import { freshDb } from './helpers.js';
 import { openDb, get, getAll, put } from '../js/db.js';
 import { MIGRATIONS, SCHEMA_VERSION, STORES } from '../js/migrations.js';
-import { createEntry, deleteEntry, listEntriesForDay, updateEntry } from '../js/entries.js';
+import { createEntry, defaultLabel, deleteEntry, listEntriesForDay, updateEntry } from '../js/entries.js';
 import { DEFAULT_SETTINGS, getSettings, saveSettings } from '../js/settings.js';
 
 test('database nuovo: tutti gli store previsti e versione = schemaVersion', async () => {
@@ -94,6 +94,26 @@ test('più voci per giorno, in ordine di ora; altri giorni esclusi', async () =>
   assert.deepEqual(day.map((e) => e.content), ['mattina', 'sera']);
   assert.equal((await listEntriesForDay(db, '2026-10-15')).length, 0);
   db.close();
+});
+
+test('le voci seguono mattina, giorno, sera; senza etichetta contano in base all\'ora', async () => {
+  const db = await freshDb();
+  await createEntry(db, { date: '2026-10-13', time: '08:00', label: 'sera', content: 'sera scelta a mano' });
+  await createEntry(db, { date: '2026-10-13', time: '21:00', content: 'senza etichetta, di sera' });
+  await createEntry(db, { date: '2026-10-13', time: '13:00', label: 'giorno', content: 'giorno' });
+  await createEntry(db, { date: '2026-10-13', time: '23:00', label: 'mattina', content: 'mattina scelta a mano' });
+  const day = await listEntriesForDay(db, '2026-10-13');
+  assert.deepEqual(day.map((e) => e.content), ['mattina scelta a mano', 'giorno', 'sera scelta a mano', 'senza etichetta, di sera']);
+  db.close();
+});
+
+test('parte del giorno suggerita dall\'ora', () => {
+  assert.equal(defaultLabel('00:00'), 'mattina');
+  assert.equal(defaultLabel('11:59'), 'mattina');
+  assert.equal(defaultLabel('12:00'), 'giorno');
+  assert.equal(defaultLabel('17:59'), 'giorno');
+  assert.equal(defaultLabel('18:00'), 'sera');
+  assert.equal(defaultLabel('23:59'), 'sera');
 });
 
 test('updateEntry cambia contenuto ed etichetta, aggiorna updatedAt, mantiene createdAt', async () => {
