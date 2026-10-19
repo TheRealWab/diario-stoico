@@ -3,6 +3,21 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 4.0 — 19 ottobre 2026 (Fase 4)
+- **Moduli** facoltativi nella pagina del giorno. Già pronti: **citazione di apertura**, **obiettivi** (la striscia di prima), **premeditatio**,
+  **negative visualization** (sopra le voci), **dicotomia del controllo**, **virtù del giorno**, **umore ed energia**, **esame serale** (sotto le voci).
+  L'esame serale ha due versioni (Seneca ed Epitteto, tre domande ciascuna); l'umore si sceglie con parole sobrie, senza numeri.
+- **Quali compaiono:** *Impostazioni → Moduli* sceglie gli attivi ogni giorno (all'inizio solo gli obiettivi, come prima).
+  In ogni giorno: «Nascondi» su un riquadro e «+ Aggiungi modulo» in fondo alla pagina.
+- **Nascondere non cancella mai:** riattivando un modulo si ritrova quello che si era scritto. I moduli appartengono alla giornata.
+- **Moduli tuoi:** nome, frase-guida facoltativa e tipo (testo libero, elenco spuntabile, valutazione 1-5, scelta tra opzioni).
+  Si modificano (nome e frase) e si **archiviano** (non si eliminano): i dati restano e nei giorni passati si leggono ancora.
+  Tre **modelli pronti**, spenti di base: Prima impressione, Persone difficili, Principio a portata di mano.
+- **Modalità lettura:** i moduli con qualcosa di scritto compaiono anche nei giorni passati, in sola lettura.
+- **Citazione di apertura:** una frase al giorno; alcune sono frasi di Epitteto (*Manuale*, traduzione di G. Leopardi, libera da diritti), con attribuzione.
+- I dati dei moduli entrano nei backup (anche cifrati) e vengono controllati all'importazione.
+- Nessuna migrazione del database: i dati restano come sono.
+
 ## 3.4 — 16 ottobre 2026
 - **Finestra del backup rifatta come in Wallet:** una sola schermata con «Con password / Senza password» e, subito sotto, **«Dove salvarlo»**:
   «Scegli dove salvare» e, se c'è già un file salvato la volta prima, **«Sostituisci il backup precedente»** (con il nome del file).

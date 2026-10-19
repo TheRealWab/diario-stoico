@@ -11,6 +11,9 @@ import { BackupCryptoError, decryptBackup, encryptBackup, isEncryptedBackup } fr
 import { askPasswordDialog, exportDialog } from '../passworddialog.js';
 import { changePin, disableLock, enableLock, toggleFingerprint } from '../lockflow.js';
 import { isLockActive } from '../lockstate.js';
+import { moduleFormDialog, templatePickerDialog } from '../moduledialogs.js';
+import { BUILTIN_MODULES, CUSTOM_TYPE_LABEL, TEMPLATES } from '../modules-catalog.js';
+import { archiveCustomDef, createCustomDef, enabledIds, listCustomDefs, setModuleEnabled, updateCustomDef } from '../modules.js';
 import { confirmDialog, messageDialog, showDialog, toast } from '../ui.js';
 import { APP_VERSION } from '../util.js';
 import { fingerprintAvailable } from '../webauthn.js';
@@ -208,6 +211,100 @@ export async function mountSettings({ db, container }) {
     }
   }
 
+  // ----- moduli -----
+  const enabled = enabledIds(settings);
+  const customDefs = await listCustomDefs(db, { includeArchived: true });
+  const activeDefs = [...BUILTIN_MODULES.map((m) => ({ ...m, builtin: true })), ...customDefs.filter((d) => !d.archived)];
+  const archivedDefs = customDefs.filter((d) => d.archived);
+
+  async function toggleModule(id, on, box) {
+    try {
+      settings = await setModuleEnabled(db, id, on);
+    } catch (err) {
+      console.error(err);
+      box.checked = !on;
+      toast('Impostazione non salvata.');
+    }
+  }
+
+  async function guarded(action, failure) {
+    try {
+      await action();
+    } catch (err) {
+      console.error(err);
+      toast(err.message || failure);
+    }
+    await mountSettings({ db, container });
+  }
+
+  const newModule = async () => {
+    const result = await moduleFormDialog();
+    if (!result) return;
+    await guarded(async () => {
+      const def = await createCustomDef(db, result);
+      await setModuleEnabled(db, def.id, true); // un modulo appena creato si vuole vederlo: lo spegni da qui quando vuoi
+      toast('Modulo creato: lo ritrovi ogni giorno. Per non vederlo, togli la spunta.');
+    }, 'Non riesco a creare il modulo.');
+  };
+
+  const addTemplate = async () => {
+    const key = await templatePickerDialog();
+    const template = TEMPLATES.find((t) => t.key === key);
+    if (!template) return;
+    await guarded(async () => {
+      await createCustomDef(db, template); // spento: si accende da qui, o si aggiunge a un giorno
+      toast(`«${template.name}» aggiunto, spento. Accendilo qui sotto quando vuoi.`);
+    }, 'Non riesco ad aggiungere il modello.');
+  };
+
+  const editModule = async (def) => {
+    const result = await moduleFormDialog({ def });
+    if (!result) return;
+    await guarded(() => updateCustomDef(db, def.id, { name: result.name, prompt: result.prompt }), 'Non riesco a salvare le modifiche.');
+  };
+
+  const archiveModule = async (def) => {
+    const ok = await confirmDialog({
+      title: 'Archiviare questo modulo?',
+      text: `«${def.name}» sparisce da tutte le liste. Quello che hai scritto resta salvato e nei giorni passati si continua a leggere. Lo puoi ripristinare quando vuoi.`,
+      confirmLabel: 'Archivia',
+    });
+    if (ok) await guarded(() => archiveCustomDef(db, def.id, true), 'Non riesco ad archiviare il modulo.');
+  };
+
+  const restoreModule = (def) => guarded(() => archiveCustomDef(db, def.id, false), 'Non riesco a ripristinare il modulo.');
+
+  function moduleRow(def, { archived = false } = {}) {
+    const box = archived ? null : h('input', { type: 'checkbox', checked: enabled.has(def.id), onchange: () => toggleModule(def.id, box.checked, box) });
+    const description = def.builtin ? def.blurb : `${CUSTOM_TYPE_LABEL[def.type]}${def.prompt ? ` · ${def.prompt}` : ''}`;
+    return h(
+      'div',
+      { class: 'mod-setting' },
+      archived ? h('p', { class: 'check-row' }, def.name) : h('label', { class: 'check-row' }, box, h('span', {}, def.name)),
+      h('p', { class: 'hint' }, description),
+      def.builtin
+        ? null
+        : h(
+            'div',
+            { class: 'mod-setting-actions' },
+            archived
+              ? h('button', { type: 'button', class: 'btn btn-secondary', onclick: () => restoreModule(def) }, 'Ripristina')
+              : [h('button', { type: 'button', class: 'btn btn-secondary', onclick: () => editModule(def) }, 'Modifica'), h('button', { type: 'button', class: 'btn btn-secondary', onclick: () => archiveModule(def) }, 'Archivia')],
+          ),
+    );
+  }
+
+  const modulesGroup = h(
+    'section',
+    { class: 'group' },
+    h('h2', {}, 'Moduli'),
+    h('p', { class: 'hint' }, 'Spunta i moduli che vuoi ritrovare ogni giorno. In ogni giornata puoi comunque nasconderne uno o aggiungerne un altro. Nascondere o archiviare non cancella mai quello che hai scritto.'),
+    activeDefs.map((d) => moduleRow(d)),
+    h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn btn-secondary', onclick: newModule }, 'Crea un modulo')),
+    h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn btn-secondary', onclick: addTemplate }, 'Modelli pronti')),
+    archivedDefs.length ? [h('p', { class: 'mod-sub' }, 'Archiviati'), archivedDefs.map((d) => moduleRow(d, { archived: true }))] : null,
+  );
+
   // ----- blocco -----
   const lockOn = isLockActive(settings);
   const rerender = () => mountSettings({ db, container });
@@ -260,6 +357,8 @@ export async function mountSettings({ db, container }) {
       segmented({ legend: 'Spazio tra le righe', options: SPACING_OPTIONS, value: settings.lineSpacing, onChange: (v) => change({ lineSpacing: v }) }),
       h('p', { class: 'preview', 'aria-hidden': 'true' }, 'Scrivere ogni giorno è un modo semplice per capire cosa dipende da noi e cosa no. Quello che conta è tornare a farlo, anche con poche righe, anche nei giorni difficili.'),
     ),
+
+    modulesGroup,
 
     lockGroup(),
 

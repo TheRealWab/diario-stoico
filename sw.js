@@ -5,7 +5,7 @@
 // IndexedDB e questo file non li tocca mai.
 
 // <precache> (generato da tools/update-sw.mjs: non modificare a mano)
-const CACHE_VERSION = '68fa9103342c';
+const CACHE_VERSION = '656da356e1d6';
 const PRECACHE = [
   "css/app.css",
   "css/theme.css",
@@ -42,6 +42,7 @@ const PRECACHE = [
   "js/lockstate.js",
   "js/markdown.js",
   "js/migrations.js",
+  "js/moduledialogs.js",
   "js/modules-catalog.js",
   "js/modules.js",
   "js/navigation.js",
@@ -59,9 +60,12 @@ const PRECACHE = [
   "js/util.js",
   "js/views/archive.js",
   "js/views/dayhead.js",
+  "js/views/daymodules.js",
   "js/views/goal.js",
   "js/views/goalrow.js",
   "js/views/goals.js",
+  "js/views/modulebody.js",
+  "js/views/modulecard.js",
   "js/views/read.js",
   "js/views/settings.js",
   "js/views/strip.js",

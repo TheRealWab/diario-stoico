@@ -11,28 +11,28 @@ const uid = () => `gd-${++counter}`;
 // quando compare la tastiera il campo scelto viene portato nella parte visibile della finestra
 const scrollOnFocus = (el) => el.addEventListener('focus', () => setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300));
 
-function textField(label, props) {
+export function textField(label, props) {
   const id = uid();
   const input = h('input', { id, type: 'text', class: 'text-input', autocomplete: 'off', ...props });
   scrollOnFocus(input);
   return { input, element: h('div', { class: 'field-row' }, h('label', { for: id }, label), input) };
 }
 
-function textArea(label, props, value = '') {
+export function textArea(label, props, value = '') {
   const id = uid();
   const input = h('textarea', { id, class: 'text-input text-area', rows: '3', ...props }, value);
   scrollOnFocus(input);
   return { input, element: h('div', { class: 'field-row' }, h('label', { for: id }, label), input) };
 }
 
-function selectField(label, options, value) {
+export function selectField(label, options, value) {
   const id = uid();
   const select = h('select', { id, class: 'text-input' }, options.map(([val, text]) => h('option', { value: val }, text)));
   select.value = value;
   return { select, element: h('div', { class: 'field-row' }, h('label', { for: id }, label), select) };
 }
 
-function present(dlg, result) {
+export function present(dlg, result) {
   return new Promise((resolve) => {
     dlg.addEventListener('close', () => {
       resolve(dlg.returnValue === 'ok' ? result() : null);
@@ -44,7 +44,7 @@ function present(dlg, result) {
 }
 
 // `getDlg` è una funzione perché la finestra non esiste ancora quando si costruiscono i suoi pulsanti
-const closeBtn = (getDlg, text) => h('button', { type: 'button', class: 'btn btn-ghost', onclick: () => getDlg().close('') }, text);
+export const closeBtn = (getDlg, text) => h('button', { type: 'button', class: 'btn btn-ghost', onclick: () => getDlg().close('') }, text);
 
 /** Titolo, nota e (facoltativo) genitore. Restituisce { title, note, parentId } oppure null. */
 export function goalFormDialog({ heading, context = '', submitLabel = 'Salva', title = '', note = '', parentId = null, candidates = [] }) {

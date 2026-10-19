@@ -8,7 +8,7 @@ Si passa alla fase successiva solo dopo qualche giorno di uso reale sul telefono
 | 1 | Il diario che funziona: pagina «Oggi», editor, salvataggio automatico, tema carta/scuro, PWA offline, export/import JSON | **Costruita** — in attesa della prova sul telefono (tag `fase-1`) |
 | 2 | Blocco con impronta (WebAuthn) + PIN, calendario mensile, vai a data, cronologia, modalità lettura, ricerca | **Costruita** (versione 2.0) — in attesa della prova sul telefono (tag `fase-2`) |
 | 3 | Obiettivi (giorno, settimana, mese, anno), striscia «Oggi» spuntabile, cascata, chiusura guidata | **Costruita** (versione 3.0) — in attesa della prova sul telefono (tag `fase-3`) |
-| 4 | Moduli attivabili (premeditatio, esame serale, virtù, dicotomia del controllo, umore, negative visualization, citazione) e moduli personalizzati | Da fare |
+| 4 | Moduli attivabili (premeditatio, esame serale, virtù, dicotomia del controllo, umore, negative visualization, citazione) e moduli personalizzati | **Costruita** (versione 4.0) — in attesa della prova sul telefono (tag `fase-4`) |
 | 5 | Ricorrenze, revisioni settimanali e mensili, menzione degli obiettivi nelle voci, export Markdown | Da fare |
 | 6 | Rifiniture secondo l'uso reale (accento, modelli di giornata, trascinamento moduli, filtri, preferiti, cifratura, notifiche) | Da fare |
 
@@ -18,6 +18,16 @@ Fase 1 pubblicata e installata sull'S25 il 13 ottobre 2026. Prima della Fase 2 s
 
 - Corretti: «null» nell'avviso del backup, cursore coperto dalla barra di formattazione, tasto «indietro» con conferma di uscita.
 - Pulsante «Aggiorna» dell'avviso di aggiornamento ridisegnato (era poco gradevole).
+
+## Scelte concordate (Fase 4)
+
+- I moduli appartengono alla **giornata intera**, non alla singola voce (un solo esame serale per giorno).
+- All'inizio è attiva solo la striscia degli **obiettivi** (come prima dei moduli); gli altri si accendono dalle Impostazioni o con «+ Aggiungi modulo».
+- Un modulo tuo si **archivia**, non si elimina: i dati restano (e si leggono nei giorni passati).
+- Citazione di apertura: frasi mie e frasi di Epitteto dal *Manuale* nella traduzione di Leopardi (libera da diritti), con attribuzione.
+- Tre **modelli pronti** di moduli tuoi (Prima impressione, Persone difficili, Principio a portata di mano), spenti di base.
+- Tono: niente punteggi né serie di giorni; umore ed energia con cinque parole sobrie; l'esame serale ricorda che il passato serve a imparare.
+- L'ordine dei moduli è fisso (il trascinamento resta alla Fase 6). Nessuna migrazione: lo schema del database resta alla versione 1.
 
 ## Scelte concordate (Fase 3)
 

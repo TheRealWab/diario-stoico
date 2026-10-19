@@ -2,34 +2,79 @@
 
 import { createSaver } from '../autosave.js';
 import { timeStr } from '../dates.js';
-import { h, icon } from '../dom.js';
+import { h, icon, setChildren } from '../dom.js';
 import { createEditor } from '../editor.js';
 import { LABELS, compareEntries, createEntry, defaultLabel, deleteEntry, listEntriesForDay, updateEntry } from '../entries.js';
+import { pickModuleDialog } from '../moduledialogs.js';
+import { setVisibleForDay } from '../modules.js';
+import { go } from '../navigation.js';
 import { confirmDialog, toast } from '../ui.js';
+import { loadDayModules } from './daymodules.js';
 import { dayHead, dayLinks } from './dayhead.js';
+import { moduleCard } from './modulecard.js';
 import { buildStrip } from './strip.js';
 
 const LABEL_TEXT = { mattina: 'Mattina', giorno: 'Giorno', sera: 'Sera' };
 
 export async function mountToday({ db, container, date }) {
   const entries = await listEntriesForDay(db, date);
-  const strip = await buildStrip({ db, date });
   const views = new Map(); // id -> { entry, root, saver, editor }
 
   const list = h('div', { class: 'entries' });
   const empty = h('p', { class: 'empty' }, 'Una pagina bianca. Scrivi quando vuoi, anche una sola riga.');
   const addBtn = h('button', { type: 'button', class: 'btn btn-add', onclick: addEntry }, icon('plus'), 'Nuova voce');
 
-  const page = h(
-    'section',
-    { class: 'page day' },
-    dayHead(date),
-    dayLinks(date),
-    strip,
-    list,
-    empty,
-    addBtn,
-  );
+  // ----- moduli: alcuni sopra le voci, altri sotto; «Aggiungi modulo» in fondo -----
+  const topModules = h('div', { class: 'modules' });
+  const bottomModules = h('div', { class: 'modules' });
+  const addModuleBtn = h('button', { type: 'button', class: 'link-button add-module', onclick: addModule }, '+ Aggiungi modulo');
+  const cards = new Set(); // i riquadri con dati da salvare: { saver }
+  let ctx = null;
+
+  async function renderModules() {
+    await Promise.all([...cards].map((c) => c.saver?.close())); // quel che si stava scrivendo si salva prima di ridisegnare
+    cards.clear();
+    ctx = await loadDayModules(db, date);
+    const build = async (def) => {
+      const onHide = () => hideModule(def);
+      if (def.type === 'goals') return buildStrip({ db, date, onHide });
+      const card = moduleCard({ db, def, date, instance: ctx.instances.get(def.id), onHide });
+      cards.add(card);
+      return card.element;
+    };
+    const [top, bottom] = await Promise.all(['top', 'bottom'].map((slot) => Promise.all(ctx.visible.filter((d) => d.slot === slot).map(build))));
+    setChildren(topModules, top);
+    setChildren(bottomModules, bottom);
+  }
+
+  async function hideModule(def) {
+    try {
+      await setVisibleForDay(db, date, def.id, false, ctx.enabled);
+      await renderModules();
+      toast(`«${def.name}» nascosto per questo giorno. Quello che hai scritto resta salvato: lo ritrovi con «Aggiungi modulo».`);
+    } catch (err) {
+      console.error(err);
+      toast('Non riesco a nascondere il modulo.');
+    }
+  }
+
+  async function addModule() {
+    const choice = await pickModuleDialog({ available: ctx.available, withData: ctx.withData });
+    if (!choice) return;
+    if (choice === 'settings') return go('#/impostazioni', 'tab');
+    try {
+      await setVisibleForDay(db, date, choice, true, ctx.enabled);
+      await renderModules();
+      page.querySelector(`[data-module="${CSS.escape(choice)}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    } catch (err) {
+      console.error(err);
+      toast('Non riesco ad aggiungere il modulo.');
+    }
+  }
+
+  await renderModules();
+
+  const page = h('section', { class: 'page day' }, dayHead(date), dayLinks(date), topModules, list, empty, addBtn, bottomModules, addModuleBtn);
   container.replaceChildren(page);
 
   entries.forEach(insertEntry);
@@ -138,6 +183,7 @@ export async function mountToday({ db, container, date }) {
   return {
     async destroy() {
       await Promise.all([...views.values()].map((v) => v.saver.close()));
+      await Promise.all([...cards].map((c) => c.saver?.close()));
     },
   };
 }

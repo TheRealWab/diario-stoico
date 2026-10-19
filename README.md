@@ -6,8 +6,10 @@ server, nessun tracciamento.
 
 - Specifiche complete: [SPEC.md](SPEC.md) · Stato delle fasi: [ROADMAP.md](ROADMAP.md)
 
-## Cosa fa (Fasi 1, 2 e 3)
+## Cosa fa (Fasi 1, 2, 3 e 4)
 
+- **Moduli** facoltativi nella pagina del giorno (premeditatio, esame serale, virtù, dicotomia del controllo, umore ed energia,
+  negative visualization, citazione di apertura) e moduli tuoi: vedi «I moduli» più sotto.
 - **Obiettivi** (nuova scheda): giorno, settimana, mese e anno, con spunta, cascata e chiusura guidata (vedi «Gli obiettivi» più sotto).
 - **Striscia degli obiettivi** nella pagina di Oggi, con gli obiettivi del giorno e della settimana spuntabili con un tocco.
 - Pagina **Oggi** con la data in grande, più voci per giorno, ognuna con la sua parte del giorno (mattina, giorno, sera; niente ora).
@@ -36,6 +38,24 @@ server, nessun tracciamento.
   sparisce dal giorno di prima e torna «da fare», senza copie. Vale anche per «Rimandato» nella chiusura guidata.
 - **Eliminare** un obiettivo chiede conferma; i suoi sotto-obiettivi **restano**, senza genitore.
 - Nessuna migrazione del database: i dati restano come sono. Gli obiettivi entrano nei backup e vengono controllati all'importazione.
+
+## I moduli
+
+Un **modulo** è un riquadro facoltativo nella pagina di un giorno, con qualche domanda guida. Sono sempre facoltativi: una riga di testo
+vale quanto quattro moduli e non esiste una giornata «incompleta». Niente punteggi, niente serie di giorni, niente colpe.
+
+- **Già pronti:** citazione di apertura, obiettivi, premeditatio, negative visualization (sopra le voci); dicotomia del controllo,
+  virtù del giorno, umore ed energia, esame serale (sotto le voci). L'ordine è fisso.
+- **Tuoi:** crei un modulo con nome, frase-guida facoltativa e un tipo: testo libero, elenco spuntabile, valutazione da 1 a 5,
+  scelta tra opzioni. Ci sono anche tre **modelli pronti** (Prima impressione, Persone difficili, Principio a portata di mano), spenti di base.
+- **Quali compaiono:** in *Impostazioni → Moduli* scegli quelli attivi ogni giorno. All'inizio c'è solo la striscia degli **obiettivi**, come prima.
+  In ogni giornata puoi **nascondere** un modulo («Nascondi») o **aggiungerne** un altro («+ Aggiungi modulo»).
+- **Nascondere o archiviare non cancella mai niente:** se riattivi un modulo ritrovi quello che avevi scritto. Un modulo tuo si **archivia**
+  (non si elimina): sparisce dalle liste, i dati restano nel diario e nel backup, e nei giorni passati si continuano a leggere.
+- I moduli appartengono alla **giornata** (non alla singola voce): un solo esame serale, una sola premeditatio per giorno.
+- **Citazione di apertura:** una frase al giorno (la stessa per tutto il giorno). Alcune sono parafrasi mie; altre sono frasi di Epitteto
+  dal *Manuale* nella traduzione di Giacomo Leopardi (1825, libera da diritti), con l'attribuzione.
+- I dati dei moduli entrano nei backup (anche cifrati) e vengono controllati all'importazione. Nessuna migrazione del database.
 
 ---
 
@@ -226,20 +246,23 @@ js/         app.js (avvio, blocco, schermate)   navigation.js + routes.js (indir
             dates.js (date AAAA-MM-GG, fuso di Roma)   calendar.js   entries.js   settings.js
             archive.js (letture dell'archivio)   search.js (ricerca)
             periods.js (giorno/settimana/mese/anno)   goals.js (obiettivi)   goals-policy.js (quando proporre le chiusure)
-            goaldialogs.js (finestre degli obiettivi)
+            goaldialogs.js (finestre degli obiettivi)   quotes.js (frasi)   file-backup.js (dove salvare il backup)
+            modules-catalog.js (moduli già pronti e testi)   modules.js (dati dei moduli, giorni, controlli)   moduledialogs.js
             backup.js (export/import)   markdown.js (formato del testo)   editor.js + toolbar.js
             pin.js, lockout.js, lockpolicy.js, webauthn*.js (logica del blocco)
             lockscreen.js, lockflow.js, pinpad.js (schermate del blocco)
             autosave.js   appearance.js   dom.js + ui.js
-            views/ (today.js, read.js, archive.js, goals.js, goal.js, goalrow.js, strip.js, settings.js, dayhead.js)
+            views/ (today.js, read.js, archive.js, goals.js, goal.js, goalrow.js, strip.js, settings.js, dayhead.js,
+                    modulecard.js, modulebody.js, daymodules.js)
 fonts/      Lora e Inter (licenza OFL, con i testi di licenza)
 icons/      icone dell'app          tests/  test automatici          tools/  script di servizio
 ```
 
 ### Come sono salvati i dati
 
-- **IndexedDB** (`diario-stoico`), versione dello schema = `schemaVersion`. Archivi: `entries`, `settings` (usati)
-  e `days`, `moduleDefs`, `moduleInstances`, `goals`, `goalLinks` (pronti per le fasi successive).
+- **IndexedDB** (`diario-stoico`), versione dello schema = `schemaVersion`. Archivi usati: `entries`, `settings`, `goals`,
+  `days` (moduli aggiunti o nascosti in quel giorno), `moduleDefs` (i moduli tuoi), `moduleInstances` (i dati di un modulo in un giorno,
+  id = `AAAA-MM-GG|idModulo`). `goalLinks` è pronto per le fasi successive.
 - Una **voce** ha: `id` (UUID), `date` (`AAAA-MM-GG`), `time` (`HH:MM`), `label` (`mattina` | `giorno` | `sera` | `null`),
   `content` (Markdown), `createdAt`, `updatedAt`.
 - Il **testo** è un sottoinsieme di Markdown: `**grassetto**`, `*corsivo*`, `## titoletto`, `- elenco`, `1. elenco`.

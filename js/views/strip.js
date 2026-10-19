@@ -9,7 +9,7 @@ import { goalsHash } from '../routes.js';
 import { toast } from '../ui.js';
 import { goalRow } from './goalrow.js';
 
-export async function buildStrip({ db, date }) {
+export async function buildStrip({ db, date, onHide = null }) {
   const today = todayStr();
   const { day, week } = await listForDayStrip(db, date);
   const isToday = date === today;
@@ -27,7 +27,17 @@ export async function buildStrip({ db, date }) {
   function paint() {
     setChildren(
       root,
-      h('div', { class: 'strip-head' }, h('h2', {}, 'Obiettivi'), h('a', { class: 'link-quiet', href: goalsHash('settimana') }, 'Tutti')),
+      h(
+        'div',
+        { class: 'strip-head' },
+        h('h2', {}, 'Obiettivi'),
+        h(
+          'div',
+          { class: 'strip-links' },
+          h('a', { class: 'link-quiet', href: goalsHash('settimana') }, 'Tutti'),
+          onHide ? h('button', { type: 'button', class: 'link-quiet module-hide', 'aria-label': 'Nascondi gli obiettivi per questo giorno', onclick: onHide }, 'Nascondi') : null,
+        ),
+      ),
       group(dayLabel, day),
       group(weekLabel, week),
       day.length || week.length ? null : h('p', { class: 'hint' }, isToday ? 'Nessun obiettivo per oggi.' : 'Nessun obiettivo per questo giorno.'),
