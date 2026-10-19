@@ -7,6 +7,7 @@ import { get, getAll, txDone } from './db.js';
 import { MIGRATIONS, SCHEMA_VERSION, STORES, migrateData } from './migrations.js';
 import { LABELS } from './entries.js';
 import { checkGoal, checkGoalTree } from './goals.js';
+import { checkDayRecord, checkModuleDef, checkModuleInstance } from './modules.js';
 import { DEFAULT_SETTINGS, LOCK_KEYS, SETTINGS_ID, checkSettings, saveSettings } from './settings.js';
 import { isValidDateStr, isValidTimeStr, todayStr } from './dates.js';
 import { APP_ID } from './util.js';
@@ -87,6 +88,9 @@ export function validateImport(file, migrations = MIGRATIONS) {
       if (store === 'entries') errors.push(...checkEntry(rec, where));
       if (store === 'settings') errors.push(...checkSettings(rec).map((p) => `${where}: ${p}`));
       if (store === 'goals') errors.push(...checkGoal(rec).map((p) => `${where}: ${p}`));
+      if (store === 'moduleDefs') errors.push(...checkModuleDef(rec).map((p) => `${where}: ${p}`));
+      if (store === 'moduleInstances') errors.push(...checkModuleInstance(rec).map((p) => `${where}: ${p}`));
+      if (store === 'days') errors.push(...checkDayRecord(rec).map((p) => `${where}: ${p}`));
     });
     clean[store] = records;
   }

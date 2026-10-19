@@ -22,7 +22,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
   lockEnabled: false,
   pinHash: null, // impronta digitale (hash) del PIN, mai il PIN
   webauthn: null, // { id, publicKey, alg } dell'impronta registrata su questo telefono
-  enabledModules: [],
+  enabledModules: [], // id dei moduli attivi di base (vedi modules.js: finché modulesConfigured è falso c'è solo «goals»)
+  modulesConfigured: false, // diventa vero alla prima scelta nelle impostazioni dei moduli
   lastBackupDate: null, // "AAAA-MM-GG" locale
 });
 
@@ -40,6 +41,10 @@ export function checkSettings(s) {
   if ('lastBackupDate' in s && s.lastBackupDate !== null && !/^\d{4}-\d{2}-\d{2}$/.test(s.lastBackupDate)) {
     problems.push('Data dell\'ultimo backup non valida.');
   }
+  if ('enabledModules' in s && (!Array.isArray(s.enabledModules) || s.enabledModules.length > 200 || s.enabledModules.some((id) => typeof id !== 'string' || !id))) {
+    problems.push('Impostazione "enabledModules" non valida.');
+  }
+  if ('modulesConfigured' in s && typeof s.modulesConfigured !== 'boolean') problems.push('Impostazione "modulesConfigured" non valida.');
   if ('lockEnabled' in s && typeof s.lockEnabled !== 'boolean') problems.push('Impostazione "lockEnabled" non valida.');
   if ('pinHash' in s && s.pinHash !== null && !isPinRecord(s.pinHash)) problems.push('Impostazione "pinHash" non valida.');
   if ('webauthn' in s && s.webauthn !== null) {
