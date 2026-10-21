@@ -9,7 +9,7 @@ server, nessun tracciamento.
 ## Cosa fa (Fasi 1, 2, 3 e 4)
 
 - **Moduli** facoltativi nella pagina del giorno (premeditatio, esame serale, virtù, dicotomia del controllo, umore ed energia,
-  negative visualization, citazione di apertura) e moduli tuoi: vedi «I moduli» più sotto.
+  negative visualization, frase del giorno) e moduli tuoi: vedi «I moduli» più sotto.
 - **Obiettivi** (nuova scheda): giorno, settimana, mese e anno, con spunta, cascata e chiusura guidata (vedi «Gli obiettivi» più sotto).
 - **Striscia degli obiettivi** nella pagina di Oggi, con gli obiettivi del giorno e della settimana spuntabili con un tocco.
 - Pagina **Oggi** con la data in grande, più voci per giorno, ognuna con la sua parte del giorno (mattina, giorno, sera; niente ora).
@@ -44,18 +44,21 @@ server, nessun tracciamento.
 Un **modulo** è un riquadro facoltativo nella pagina di un giorno, con qualche domanda guida. Sono sempre facoltativi: una riga di testo
 vale quanto quattro moduli e non esiste una giornata «incompleta». Niente punteggi, niente serie di giorni, niente colpe.
 
-- **Già pronti:** citazione di apertura, obiettivi, premeditatio, negative visualization (sopra le voci); dicotomia del controllo,
+- **Già pronti:** frase del giorno, obiettivi, premeditatio, negative visualization (sopra le voci); dicotomia del controllo,
   virtù del giorno, umore ed energia, esame serale (sotto le voci). L'ordine di partenza è questo, ma lo scegli tu (vedi sotto).
 - **Tuoi:** crei un modulo con nome, frase-guida facoltativa e un tipo: testo libero, elenco spuntabile, valutazione da 1 a 5,
   scelta tra opzioni. Ci sono anche tre **modelli pronti** (Prima impressione, Persone difficili, Principio a portata di mano), spenti di base.
-- **Quali compaiono:** in *Impostazioni → Moduli* scegli quelli attivi ogni giorno. All'inizio c'è solo la striscia degli **obiettivi**, come prima.
+- **Quali compaiono:** in *Impostazioni → Moduli* scegli quelli attivi ogni giorno. All'inizio ci sono la **frase del giorno** e la striscia degli **obiettivi**.
   In ogni giornata puoi **nascondere** un modulo («Nascondi») o **aggiungerne** un altro («+ Aggiungi modulo»).
 - **Ordine:** in *Impostazioni → Moduli* le frecce ▲ ▼ spostano ogni modulo, e anche **«Le tue voci»** (dove scrivi), che è un blocco come gli altri:  i moduli prima delle voci stanno sopra, quelli dopo stanno sotto. L'ordine vale per tutti i giorni (impostazione `moduleOrder`, vedi `orderDefs` in `js/modules.js`).
 - **Nascondere o archiviare non cancella mai niente:** se riattivi un modulo ritrovi quello che avevi scritto. Un modulo tuo si **archivia**
   (non si elimina): sparisce dalle liste, i dati restano nel diario e nel backup, e nei giorni passati si continuano a leggere.
 - I moduli appartengono alla **giornata** (non alla singola voce): un solo esame serale, una sola premeditatio per giorno.
-- **Citazione di apertura:** una frase al giorno (la stessa per tutto il giorno). Alcune sono parafrasi mie; altre sono frasi di Epitteto
-  dal *Manuale* nella traduzione di Giacomo Leopardi (1825, libera da diritti), con l'attribuzione.
+- **Frase del giorno** (in cima a «Oggi», accesa di base; si spegne dalle Impostazioni): **366 frasi, tutte alla lettera**, mai riscritte da me,
+  di Marco Aurelio, Epitteto, Seneca, Platone, Cicerone, Epicuro e dei detti di Socrate, Zenone, Cleante, Diogene, Aristotele e altri. Ogni frase è copiata
+  da un testo antico in una **traduzione italiana libera da diritti** ed è controllata parola per parola; compaiono autore, opera e traduttore.
+  Solo la forma è ritoccata (accenti: *cosí → così*): vedi `CITAZIONI.md`, che per ogni frase indica la pagina dove verificarla.
+  La frase dipende solo dalla data: è la stessa per tutto il giorno e non si ripete in 366 giorni (`js/quotes.js`, dati in `js/citazioni.js`).
 - I dati dei moduli entrano nei backup (anche cifrati) e vengono controllati all'importazione. Nessuna migrazione del database.
 
 ---

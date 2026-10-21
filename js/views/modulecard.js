@@ -43,7 +43,12 @@ export function moduleCard({ db, def, date, instance, readOnly = false, onHide }
   let body;
   if (def.type === 'quote') {
     const q = quoteForDate(date);
-    body = h('blockquote', { class: 'mod-quote' }, h('p', {}, q.text), q.source ? h('cite', {}, q.source) : null);
+    body = h(
+      'blockquote',
+      { class: 'mod-quote' },
+      h('p', {}, q.text),
+      h('cite', {}, h('strong', {}, q.author), h('span', {}, `${q.source} · trad. di ${q.translation}`)),
+    );
   } else {
     body = buildBody({
       def,

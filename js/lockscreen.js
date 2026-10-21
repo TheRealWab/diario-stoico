@@ -26,6 +26,12 @@ export function hideCover() {
   cover?.classList.remove('is-on');
 }
 
+// una frase breve, alla lettera, con l'autore (le altre informazioni stanno nella frase del giorno in Oggi)
+function lockQuote() {
+  const q = randomQuote();
+  return h('div', {}, h('p', { class: 'lock-quote' }, q.text), h('p', { class: 'lock-quote-by' }, `— ${q.author}`));
+}
+
 const inertTargets = () => [document.getElementById('view'), document.querySelector('.tabbar'), document.querySelector('.toolbar')].filter(Boolean);
 
 /** Mostra il blocco e si risolve quando l'utente ha sbloccato. */
@@ -41,7 +47,7 @@ export async function showLockScreen(settings) {
   const root = h(
     'div',
     { class: 'lock', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Diario Stoico bloccato' },
-    h('div', { class: 'lock-top' }, h('p', { class: 'lock-brand' }, 'Diario Stoico'), h('p', { class: 'lock-quote' }, randomQuote())),
+    h('div', { class: 'lock-top' }, h('p', { class: 'lock-brand' }, 'Diario Stoico'), lockQuote()),
     panel,
   );
   // la schermata compare subito; se c'è l'impronta si scopre un attimo dopo

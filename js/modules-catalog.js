@@ -8,8 +8,8 @@
 export const BUILTIN_MODULES = Object.freeze([
   {
     id: 'quote',
-    name: 'Citazione di apertura',
-    blurb: 'Una frase breve per cominciare la giornata.',
+    name: 'Frase del giorno',
+    blurb: 'Una frase al giorno, di un filosofo antico, per cominciare: con autore e fonte.',
     type: 'quote',
     slot: 'top',
   },

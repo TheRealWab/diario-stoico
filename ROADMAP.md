@@ -24,10 +24,10 @@ Fase 1 pubblicata e installata sull'S25 il 13 ottobre 2026. Prima della Fase 2 s
 - I moduli appartengono alla **giornata intera**, non alla singola voce (un solo esame serale per giorno).
 - All'inizio è attiva solo la striscia degli **obiettivi** (come prima dei moduli); gli altri si accendono dalle Impostazioni o con «+ Aggiungi modulo».
 - Un modulo tuo si **archivia**, non si elimina: i dati restano (e si leggono nei giorni passati).
-- Citazione di apertura: frasi mie e frasi di Epitteto dal *Manuale* nella traduzione di Leopardi (libera da diritti), con attribuzione.
+- Frase del giorno (ex «citazione di apertura»): dalla 4.2, 366 frasi alla lettera da testi liberi da diritti (vedi `CITAZIONI.md`), accesa di base in cima a «Oggi».
 - Tre **modelli pronti** di moduli tuoi (Prima impressione, Persone difficili, Principio a portata di mano), spenti di base.
 - Tono: niente punteggi né serie di giorni; umore ed energia con cinque parole sobrie; l'esame serale ricorda che il passato serve a imparare.
-- L'ordine dei moduli è fisso (il trascinamento resta alla Fase 6). Nessuna migrazione: lo schema del database resta alla versione 1.
+- L'ordine dei moduli, in 4.0 fisso, si sceglie dalla 4.1 con le frecce (il trascinamento resta alla Fase 6). Nessuna migrazione: lo schema del database resta alla versione 1.
 
 ## Scelte concordate (Fase 3)
 

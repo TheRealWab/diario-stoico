@@ -3,6 +3,17 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 4.2 — 21 ottobre 2026
+- **Frase del giorno:** 366 frasi, una per ogni giorno, **tutte alla lettera**: nessuna è riscritta da me. Vengono da testi antichi in traduzioni italiane
+  libere da diritti (Marco Aurelio, Epitteto, Seneca, Platone, Cicerone, Epicuro e i detti di Socrate, Zenone, Cleante, Diogene, Aristotele, Talete,
+  Pitagora e altri, riportati da Diogene Laerzio). Ogni frase è stata controllata parola per parola sul testo originale. Si legge **autore, opera e traduttore**.
+- **In cima a «Oggi», accesa di base** (anche per chi aveva già scelto i moduli); si spegne in *Impostazioni → Moduli*. La stessa per tutto il giorno,
+  mai ripetuta in 366 giorni, e due giorni di fila non hanno mai lo stesso autore. Anche la schermata di blocco mostra una frase breve, con l'autore.
+- Le frasi che prima scrivevo io (parafrasi) non ci sono più: ora è tutto alla lettera.
+- **Solo la forma è ritoccata:** gli accenti acuti antichi diventano gravi (cosí → così), apostrofi e virgolette tipografici. Nessuna parola è cambiata,
+  nemmeno l'ortografia dell'epoca (*poichè, nè, perocchè*). L'elenco completo, con la pagina di Wikisource dove verificare ogni frase, è in `CITAZIONI.md`.
+- Il riquadro si chiama ora «Frase del giorno» (prima «Citazione di apertura»). Nessuna migrazione del database.
+
 ## 4.1 — 21 ottobre 2026
 - **Ordine dei moduli a scelta:** in *Impostazioni → Moduli* ogni modulo ha le frecce ▲ ▼ per decidere in che ordine compare nella pagina del giorno
   (obiettivi prima o dopo la negative visualization, e così via). Anche **«Le tue voci»**, il posto dove scrivi, è un blocco della lista e si sposta

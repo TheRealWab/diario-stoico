@@ -260,7 +260,9 @@ export const archiveCustomDef = (db, id, archived = true, now) => updateCustomDe
  */
 export function enabledIds(settings) {
   const saved = Array.isArray(settings?.enabledModules) ? settings.enabledModules : [];
-  return new Set(settings?.modulesConfigured === true ? saved : ['goals', ...saved]);
+  const ids = new Set(settings?.modulesConfigured === true ? saved : ['goals', ...saved]);
+  if (settings?.quoteChosen !== true) ids.add('quote'); // la frase del giorno c'è finché non si sceglie di spegnerla
+  return ids;
 }
 
 export async function setModuleEnabled(db, id, on, now) {
@@ -268,7 +270,9 @@ export async function setModuleEnabled(db, id, on, now) {
   const ids = enabledIds(settings);
   if (on) ids.add(id);
   else ids.delete(id);
-  return saveSettings(db, { enabledModules: [...ids], modulesConfigured: true }, now);
+  const patch = { enabledModules: [...ids], modulesConfigured: true };
+  if (id === 'quote') patch.quoteChosen = true; // una scelta fatta: da qui in poi vale quella
+  return saveSettings(db, patch, now);
 }
 
 // ---------- un giorno ----------

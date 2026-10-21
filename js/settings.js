@@ -24,6 +24,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   webauthn: null, // { id, publicKey, alg } dell'impronta registrata su questo telefono
   enabledModules: [], // id dei moduli attivi di base (vedi modules.js: finché modulesConfigured è falso c'è solo «goals»)
   modulesConfigured: false, // diventa vero alla prima scelta nelle impostazioni dei moduli
+  quoteChosen: false, // diventa vero quando si accende o si spegne la frase del giorno: finché è falso, la frase c'è
   moduleOrder: [], // ordine dei blocchi della pagina del giorno (moduli e «voci»); vuoto = ordine di partenza (vedi modules.js)
   lastBackupDate: null, // "AAAA-MM-GG" locale
 });
@@ -45,6 +46,7 @@ export function checkSettings(s) {
   if ('enabledModules' in s && (!Array.isArray(s.enabledModules) || s.enabledModules.length > 200 || s.enabledModules.some((id) => typeof id !== 'string' || !id))) {
     problems.push('Impostazione "enabledModules" non valida.');
   }
+  if ('quoteChosen' in s && typeof s.quoteChosen !== 'boolean') problems.push('Impostazione "quoteChosen" non valida.');
   if ('moduleOrder' in s && (!Array.isArray(s.moduleOrder) || s.moduleOrder.length > 300 || s.moduleOrder.some((id) => typeof id !== 'string' || !id))) {
     problems.push('Impostazione "moduleOrder" non valida.');
   }

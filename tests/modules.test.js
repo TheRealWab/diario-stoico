@@ -137,16 +137,26 @@ test('modificare un modulo: si cambiano nome e frase-guida, non il tipo né le o
 
 test('attivi di base: all\'inizio solo gli obiettivi; la prima scelta fissa l\'elenco', async () => {
   const db = await freshDb();
-  assert.deepEqual([...enabledIds(await getSettings(db))], ['goals']); // come prima dei moduli
+  assert.deepEqual([...enabledIds(await getSettings(db))].sort(), ['goals', 'quote']); // gli obiettivi come prima dei moduli, più la frase del giorno
   await setModuleEnabled(db, 'premeditatio', true, NOW);
   let s = await getSettings(db);
   assert.equal(s.modulesConfigured, true);
-  assert.deepEqual([...enabledIds(s)].sort(), ['goals', 'premeditatio']);
+  assert.deepEqual([...enabledIds(s)].sort(), ['goals', 'premeditatio', 'quote']);
   await setModuleEnabled(db, 'goals', false, NOW); // anche gli obiettivi si possono spegnere
   s = await getSettings(db);
-  assert.deepEqual([...enabledIds(s)], ['premeditatio']);
+  assert.deepEqual([...enabledIds(s)].sort(), ['premeditatio', 'quote']);
   await setModuleEnabled(db, 'premeditatio', true, NOW); // idempotente
-  assert.deepEqual([...enabledIds(await getSettings(db))], ['premeditatio']);
+  assert.deepEqual([...enabledIds(await getSettings(db))].sort(), ['premeditatio', 'quote']);
+  // la frase del giorno si può spegnere: da quel momento vale la scelta fatta, anche dopo altri cambi
+  await setModuleEnabled(db, 'quote', false, NOW);
+  s = await getSettings(db);
+  assert.equal(s.quoteChosen, true);
+  assert.deepEqual([...enabledIds(s)], ['premeditatio']);
+  await setModuleEnabled(db, 'goals', true, NOW);
+  assert.deepEqual([...enabledIds(await getSettings(db))].sort(), ['goals', 'premeditatio']);
+  await setModuleEnabled(db, 'quote', true, NOW);
+  assert.deepEqual([...enabledIds(await getSettings(db))].sort(), ['goals', 'premeditatio', 'quote']);
+  assert.equal(checkSettings({ quoteChosen: 'sì' }).length, 1);
   assert.deepEqual(checkSettings({ enabledModules: 'goals' }).length, 1);
   assert.deepEqual(checkSettings({ enabledModules: [''] }).length, 1);
   assert.deepEqual(checkSettings({ modulesConfigured: 'sì' }).length, 1);
@@ -277,7 +287,7 @@ test('backup: moduli tuoi, giorni e dati dei moduli tornano identici, anche dopo
     assert.deepEqual(sort(await getAll(other, store)), sort(await getAll(db, store)), store);
   }
   // anche i moduli attivi di base viaggiano con le impostazioni
-  assert.deepEqual([...enabledIds(await getSettings(other))].sort(), ['goals', 'virtues']);
+  assert.deepEqual([...enabledIds(await getSettings(other))].sort(), ['goals', 'quote', 'virtues']);
   db.close();
   other.close();
 });
@@ -317,7 +327,7 @@ test('un backup di prima dei moduli (senza questi campi) si importa e funziona c
   assert.ok(check.ok, check.errors.join());
   const other = await freshDb();
   await importData(other, check.data, 'replace');
-  assert.deepEqual([...enabledIds(await getSettings(other))], ['goals']);
+  assert.deepEqual([...enabledIds(await getSettings(other))].sort(), ['goals', 'quote']);
   db.close();
   other.close();
 });

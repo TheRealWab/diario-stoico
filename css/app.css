@@ -569,6 +569,7 @@ body.lock-open { overflow: hidden; }
   color: var(--ink-soft);
   text-wrap: balance;
 }
+.lock-quote-by { margin: var(--space-2) 0 0; font-size: 0.875rem; color: var(--ink-soft); }
 
 .lock-panel { display: grid; justify-items: center; gap: var(--space-4); width: 100%; max-width: 20rem; }
 .btn-wide { width: 100%; min-height: 3.5rem; }
@@ -724,7 +725,8 @@ select.text-input { appearance: auto; }
 .mod-scale { margin: 0; }
 .mod-quote { margin: var(--space-2) 0 0; padding: 0; font-family: var(--font-diary); font-size: 1.0625rem; line-height: 1.6; }
 .mod-quote p { margin: 0 0 var(--space-2); }
-.mod-quote cite { display: block; font-family: var(--font-ui); font-size: 0.8125rem; font-style: normal; color: var(--ink-soft); }
+.mod-quote cite { display: grid; gap: 2px; font-family: var(--font-ui); font-size: 0.8125rem; font-style: normal; color: var(--ink-soft); }
+.mod-quote cite strong { font-size: 0.9375rem; font-weight: 600; color: var(--ink); }
 .mod-read { margin: var(--space-2) 0 0; }
 .mod-read-label { margin: 0; font-size: 0.8125rem; color: var(--ink-soft); }
 .mod-read-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-diary); line-height: var(--diary-leading); }
