@@ -17,7 +17,7 @@ import { buildStrip } from './strip.js';
 const LABEL_TEXT = { mattina: 'Mattina', giorno: 'Giorno', sera: 'Sera' };
 
 export async function mountToday({ db, container, date }) {
-  const entries = await listEntriesForDay(db, date);
+  const entriesLoad = listEntriesForDay(db, date); // parte subito, in parallelo ai moduli
   const views = new Map(); // id -> { entry, root, saver, editor }
 
   const list = h('div', { class: 'entries' });
@@ -72,7 +72,7 @@ export async function mountToday({ db, container, date }) {
     }
   }
 
-  await renderModules();
+  const [entries] = await Promise.all([entriesLoad, renderModules()]);
 
   const page = h('section', { class: 'page day' }, dayHead(date), dayLinks(date), topModules, list, empty, addBtn, bottomModules, addModuleBtn);
   container.replaceChildren(page);

@@ -3,7 +3,7 @@
 import { applyAppearance } from '../appearance.js';
 import { backupText, buildExport, downloadJson, exportFilename, importData, planMerge, validateImport } from '../backup.js';
 import { daysAgoLabel, formatDayMonthYear, todayStr } from '../dates.js';
-import { h } from '../dom.js';
+import { h, icon, setChildren } from '../dom.js';
 import { getSettings, saveSettings } from '../settings.js';
 import { flushAll } from '../autosave.js';
 import { KINDS, canReuseFile, fileChoiceAvailable, forgetFile, getRememberedFile, pickNewFile, rememberFile, writeToFile } from '../file-backup.js';
@@ -13,7 +13,8 @@ import { changePin, disableLock, enableLock, toggleFingerprint } from '../lockfl
 import { isLockActive } from '../lockstate.js';
 import { moduleFormDialog, templatePickerDialog } from '../moduledialogs.js';
 import { BUILTIN_MODULES, CUSTOM_TYPE_LABEL, TEMPLATES } from '../modules-catalog.js';
-import { archiveCustomDef, createCustomDef, enabledIds, listCustomDefs, setModuleEnabled, updateCustomDef } from '../modules.js';
+import { ENTRIES_ID, archiveCustomDef, createCustomDef, enabledIds, listCustomDefs, moveInOrder, resolveOrder, setModuleEnabled, setModuleOrder, updateCustomDef } from '../modules.js';
+import { recentTimings } from '../perf.js';
 import { confirmDialog, messageDialog, showDialog, toast } from '../ui.js';
 import { APP_VERSION } from '../util.js';
 import { fingerprintAvailable } from '../webauthn.js';
@@ -274,13 +275,61 @@ export async function mountSettings({ db, container }) {
 
   const restoreModule = (def) => guarded(() => archiveCustomDef(db, def.id, false), 'Non riesco a ripristinare il modulo.');
 
-  function moduleRow(def, { archived = false } = {}) {
+  // l'ordine in cui i blocchi compaiono nella pagina del giorno: i moduli e «Le tue voci»
+  let order = resolveOrder(settings.moduleOrder, customDefs.map((d) => d.id));
+  const defById = new Map(activeDefs.map((d) => [d.id, d]));
+  const modList = h('div', { class: 'mod-list' });
+
+  async function moveBlock(id, step, shown) {
+    const next = moveInOrder(order, shown, id, step);
+    if (next === order) return;
+    const before = order;
+    order = next;
+    try {
+      settings = await setModuleOrder(db, order);
+    } catch (err) {
+      console.error(err);
+      order = before;
+      toast('Ordine non salvato.');
+    }
+    paintModules({ id, step });
+  }
+
+  function moveButtons(id, shown, name) {
+    const at = shown.indexOf(id);
+    const button = (step, iconName, label) =>
+      h('button', { type: 'button', class: 'icon-btn icon-btn-quiet', 'aria-label': `${label} «${name}»`, 'data-move': `${id}:${step}`, disabled: shown[at + step] === undefined, onclick: () => moveBlock(id, step, shown) }, icon(iconName));
+    return h('div', { class: 'mod-move' }, button(-1, 'chevron-up', 'Sposta su'), button(1, 'chevron-down', 'Sposta giù'));
+  }
+
+  function entriesRow(shown) {
+    return h(
+      'div',
+      { class: 'mod-setting' },
+      h('div', { class: 'mod-head' }, h('p', { class: 'check-row mod-fixed' }, 'Le tue voci'), moveButtons(ENTRIES_ID, shown, 'Le tue voci')),
+      h('p', { class: 'hint' }, 'Il posto dove scrivi il diario: c’è sempre. Spostalo per decidere quali moduli stanno prima e quali dopo.'),
+    );
+  }
+
+  function paintModules(focus = null) {
+    const shown = order.filter((id) => id === ENTRIES_ID || defById.has(id));
+    setChildren(modList, shown.map((id) => (id === ENTRIES_ID ? entriesRow(shown) : moduleRow(defById.get(id), { shown }))));
+    if (focus) {
+      // il focus resta sulla freccia appena usata; se il blocco è arrivato in cima o in fondo quella si spegne, e si passa all'altra
+      const arrow = (step) => modList.querySelector(`[data-move="${focus.id}:${step}"]`);
+      (arrow(focus.step)?.disabled === false ? arrow(focus.step) : arrow(-focus.step))?.focus();
+    }
+  }
+
+  function moduleRow(def, { archived = false, shown = [] } = {}) {
     const box = archived ? null : h('input', { type: 'checkbox', checked: enabled.has(def.id), onchange: () => toggleModule(def.id, box.checked, box) });
     const description = def.builtin ? def.blurb : `${CUSTOM_TYPE_LABEL[def.type]}${def.prompt ? ` · ${def.prompt}` : ''}`;
     return h(
       'div',
       { class: 'mod-setting' },
-      archived ? h('p', { class: 'check-row' }, def.name) : h('label', { class: 'check-row' }, box, h('span', {}, def.name)),
+      archived
+        ? h('p', { class: 'check-row' }, def.name)
+        : h('div', { class: 'mod-head' }, h('label', { class: 'check-row' }, box, h('span', {}, def.name)), moveButtons(def.id, shown, def.name)),
       h('p', { class: 'hint' }, description),
       def.builtin
         ? null
@@ -299,11 +348,14 @@ export async function mountSettings({ db, container }) {
     { class: 'group' },
     h('h2', {}, 'Moduli'),
     h('p', { class: 'hint' }, 'Spunta i moduli che vuoi ritrovare ogni giorno. In ogni giornata puoi comunque nasconderne uno o aggiungerne un altro. Nascondere o archiviare non cancella mai quello che hai scritto.'),
-    activeDefs.map((d) => moduleRow(d)),
+    h('p', { class: 'hint' }, 'Con le frecce scegli l’ordine in cui compaiono nella pagina, «Le tue voci» comprese.'),
+    modList,
     h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn btn-secondary', onclick: newModule }, 'Crea un modulo')),
     h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn btn-secondary', onclick: addTemplate }, 'Modelli pronti')),
     archivedDefs.length ? [h('p', { class: 'mod-sub' }, 'Archiviati'), archivedDefs.map((d) => moduleRow(d, { archived: true }))] : null,
   );
+
+  paintModules();
 
   // ----- blocco -----
   const lockOn = isLockActive(settings);
@@ -377,6 +429,9 @@ export async function mountSettings({ db, container }) {
       { class: 'group' },
       h('h2', {}, 'Informazioni'),
       h('p', { class: 'hint' }, `Diario Stoico · versione ${APP_VERSION}`),
+      recentTimings().length
+        ? h('p', { class: 'hint' }, `Ultime schermate aperte (dal tocco alla pagina pronta): ${recentTimings().map((t) => `${t.name} ${t.ms} ms`).join(' · ')}.`)
+        : null,
       h('p', { class: 'hint' }, persisted ? 'Archiviazione protetta dal browser: sì.' : 'Archiviazione protetta dal browser: non ancora (si attiva di solito dopo l’installazione).'),
     ),
   );

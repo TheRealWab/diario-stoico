@@ -3,6 +3,16 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 4.1 — 21 ottobre 2026
+- **Ordine dei moduli a scelta:** in *Impostazioni → Moduli* ogni modulo ha le frecce ▲ ▼ per decidere in che ordine compare nella pagina del giorno
+  (obiettivi prima o dopo la negative visualization, e così via). Anche **«Le tue voci»**, il posto dove scrivi, è un blocco della lista e si sposta
+  come gli altri: i moduli sopra stanno prima delle voci, quelli sotto dopo. L'ordine vale per tutti i giorni, anche in modalità lettura, e entra nei backup.
+  Se non si cambia nulla, l'ordine resta quello di prima.
+- **Ritorno a «Oggi» più veloce:** la pagina si disegna subito, senza aspettare che il browser torni indietro nella cronologia (era il passaggio lento).
+  La barra in basso si accende al tocco; la dissolvenza tra le schermate non parte più da trasparente; «Oggi» legge voci e moduli insieme.
+- *Impostazioni → Informazioni* mostra i tempi delle ultime schermate aperte, per capire se qualcosa resta lento. Non viene salvato né inviato da nessuna parte.
+- Nessuna migrazione del database: i dati restano come sono.
+
 ## 4.0 — 19 ottobre 2026 (Fase 4)
 - **Moduli** facoltativi nella pagina del giorno. Già pronti: **citazione di apertura**, **obiettivi** (la striscia di prima), **premeditatio**,
   **negative visualization** (sopra le voci), **dicotomia del controllo**, **virtù del giorno**, **umore ed energia**, **esame serale** (sotto le voci).

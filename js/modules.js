@@ -169,6 +169,54 @@ export async function listAllDefs(db, options) {
   return [...builtin.filter((m) => m.slot === 'top'), ...builtin.filter((m) => m.slot === 'bottom'), ...custom];
 }
 
+// ---------- ordine nella pagina ----------
+
+/** «Le tue voci» (dove si scrive il diario) è un blocco della pagina come i moduli: si può spostare. */
+export const ENTRIES_ID = 'entries';
+
+/** L'ordine di partenza: i moduli sopra le voci, le voci, quelli sotto, poi i tuoi. */
+export function defaultOrder(customIds = []) {
+  const ids = (slot) => BUILTIN_MODULES.filter((m) => m.slot === slot).map((m) => m.id);
+  return [...ids('top'), ENTRIES_ID, ...ids('bottom'), ...customIds];
+}
+
+/**
+ * L'ordine da usare: quello salvato nelle impostazioni (se c'è), senza ciò che non esiste più e con in coda
+ * ciò che non era ancora nella lista (per esempio un modulo creato dopo).
+ */
+export function resolveOrder(saved, customIds = []) {
+  const base = defaultOrder(customIds);
+  const head = (Array.isArray(saved) ? saved : []).filter((id, i, all) => base.includes(id) && all.indexOf(id) === i);
+  return [...head, ...base.filter((id) => !head.includes(id))];
+}
+
+/** Mette i moduli nell'ordine scelto e segna se stanno sopra ('top') o sotto ('bottom') le voci. */
+export function orderDefs(defs, saved) {
+  const order = resolveOrder(saved, defs.filter((d) => !d.builtin).map((d) => d.id));
+  const entriesAt = order.indexOf(ENTRIES_ID);
+  const byId = new Map(defs.map((d) => [d.id, d]));
+  return order
+    .map((id, i) => (byId.has(id) ? { ...byId.get(id), slot: i < entriesAt ? 'top' : 'bottom' } : null))
+    .filter(Boolean);
+}
+
+/** Sposta un blocco di un posto (-1 su, +1 giù) tra quelli mostrati (`shown` = id visibili nell'elenco, in ordine). */
+export function moveInOrder(order, shown, id, step) {
+  const at = shown.indexOf(id);
+  const other = shown[at + step];
+  if (at < 0 || other === undefined) return order;
+  const next = [...order];
+  const a = next.indexOf(id);
+  const b = next.indexOf(other);
+  next.splice(a, 1);
+  next.splice(b, 0, id); // se il vicino era più avanti, dopo aver tolto il blocco la sua posizione è già scalata di uno
+  return next;
+}
+
+export async function setModuleOrder(db, order, now) {
+  return saveSettings(db, { moduleOrder: order }, now);
+}
+
 export async function createCustomDef(db, { name, prompt = '', type, options = [] }, now = new Date()) {
   const clean = {
     id: `c-${uuid()}`,

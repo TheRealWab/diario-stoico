@@ -18,6 +18,7 @@
 
 import { flushAll } from './autosave.js';
 import { todayStr } from './dates.js';
+import { markTap } from './perf.js';
 import { familyOf, isTabRoute, parseRoute } from './routes.js';
 import { hideToast, toast } from './ui.js';
 
@@ -25,6 +26,7 @@ let renderFn = () => {};
 let armed = false;
 let currentHash = '#/oggi';
 let pendingGo = null; // schermata da aprire dopo un history.go()
+let drawnAhead = null; // schermata già disegnata prima che il history.go() finisse (non va ridisegnata)
 let backNav = false; // la schermata che si sta disegnando è stata raggiunta con «indietro»
 let savingScroll = true;
 let exitTimer = null;
@@ -89,6 +91,7 @@ function push(hash) {
 export function go(hash, via = 'push') {
   if (history.state?.ds === 'base') stay(); // era comparso «premi ancora indietro»
   if (hash === hashNow()) return;
+  markTap();
   const target = routeOf(hash);
   const depth = depthNow();
   rememberScroll();
@@ -99,7 +102,11 @@ export function go(hash, via = 'push') {
       if (depth > 1 && history.state?.noHome) {
         history.replaceState(state(1), '', hash); // sotto non c'è una voce «Oggi» a cui tornare
       } else if (depth > 1) {
+        // Tornare indietro nella cronologia è lento (il browser ci mette un po' prima di dire «fatto»):
+        // la pagina si disegna subito e la cronologia si sistema intanto; poi popstate non ridisegna.
         pendingGo = hash;
+        drawnAhead = hash;
+        renderFn({ hash, state: state(1) });
         history.go(1 - depth);
         return;
       }
@@ -182,11 +189,19 @@ export function initNavigation({ render }) {
     }
     savingScroll = false;
     backNav = !pendingGo;
+    const ahead = drawnAhead;
+    drawnAhead = null;
     if (pendingGo) {
       const target = pendingGo;
       pendingGo = null;
       if (hashNow() !== target) replace(target);
     }
+    if (ahead && hashNow() === ahead) {
+      backNav = false;
+      savingScroll = true;
+      return; // la pagina è già stata disegnata
+    }
+    markTap();
     renderFn();
   });
 }

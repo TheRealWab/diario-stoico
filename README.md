@@ -45,11 +45,12 @@ Un **modulo** è un riquadro facoltativo nella pagina di un giorno, con qualche 
 vale quanto quattro moduli e non esiste una giornata «incompleta». Niente punteggi, niente serie di giorni, niente colpe.
 
 - **Già pronti:** citazione di apertura, obiettivi, premeditatio, negative visualization (sopra le voci); dicotomia del controllo,
-  virtù del giorno, umore ed energia, esame serale (sotto le voci). L'ordine è fisso.
+  virtù del giorno, umore ed energia, esame serale (sotto le voci). L'ordine di partenza è questo, ma lo scegli tu (vedi sotto).
 - **Tuoi:** crei un modulo con nome, frase-guida facoltativa e un tipo: testo libero, elenco spuntabile, valutazione da 1 a 5,
   scelta tra opzioni. Ci sono anche tre **modelli pronti** (Prima impressione, Persone difficili, Principio a portata di mano), spenti di base.
 - **Quali compaiono:** in *Impostazioni → Moduli* scegli quelli attivi ogni giorno. All'inizio c'è solo la striscia degli **obiettivi**, come prima.
   In ogni giornata puoi **nascondere** un modulo («Nascondi») o **aggiungerne** un altro («+ Aggiungi modulo»).
+- **Ordine:** in *Impostazioni → Moduli* le frecce ▲ ▼ spostano ogni modulo, e anche **«Le tue voci»** (dove scrivi), che è un blocco come gli altri:  i moduli prima delle voci stanno sopra, quelli dopo stanno sotto. L'ordine vale per tutti i giorni (impostazione `moduleOrder`, vedi `orderDefs` in `js/modules.js`).
 - **Nascondere o archiviare non cancella mai niente:** se riattivi un modulo ritrovi quello che avevi scritto. Un modulo tuo si **archivia**
   (non si elimina): sparisce dalle liste, i dati restano nel diario e nel backup, e nei giorni passati si continuano a leggere.
 - I moduli appartengono alla **giornata** (non alla singola voce): un solo esame serale, una sola premeditatio per giorno.

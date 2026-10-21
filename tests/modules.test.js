@@ -7,6 +7,7 @@ import {
   archiveCustomDef, arrangeForDay, checkDayRecord, checkModuleDef, checkModuleInstance, createCustomDef, defaultData, enabledIds,
   getDay, getInstance, hasContent, instanceId, isEmptyData, isVisible, listAllDefs, listCustomDefs, listInstancesForDay,
   normalizeData, saveInstance, setModuleEnabled, setVisibleForDay, updateCustomDef,
+  ENTRIES_ID, defaultOrder, moveInOrder, orderDefs, resolveOrder, setModuleOrder,
 } from '../js/modules.js';
 import { BUILTIN_MODULES, CUSTOM_TYPES, EVENING_VARIANTS, LIMITS, TEMPLATES, VIRTUES } from '../js/modules-catalog.js';
 import { checkSettings, getSettings } from '../js/settings.js';
@@ -319,4 +320,72 @@ test('un backup di prima dei moduli (senza questi campi) si importa e funziona c
   assert.deepEqual([...enabledIds(await getSettings(other))], ['goals']);
   db.close();
   other.close();
+});
+
+// ---------- ordine dei blocchi nella pagina ----------
+
+test('ordine: quello di partenza è moduli sopra, voci, moduli sotto, poi i tuoi', () => {
+  assert.deepEqual(defaultOrder(['c-1']), ['quote', 'goals', 'premeditatio', 'negvis', ENTRIES_ID, 'control', 'virtues', 'mood', 'evening', 'c-1']);
+});
+
+test('ordine: resolveOrder tiene quello salvato, scarta ciò che non esiste e mette in coda ciò che manca', () => {
+  const saved = ['evening', 'ghost', ENTRIES_ID, 'evening', 'goals'];
+  const order = resolveOrder(saved, ['c-1']);
+  assert.deepEqual(order.slice(0, 3), ['evening', ENTRIES_ID, 'goals']);
+  assert.ok(!order.includes('ghost'));
+  assert.equal(new Set(order).size, order.length);
+  assert.deepEqual([...order].sort(), [...defaultOrder(['c-1'])].sort());
+  assert.deepEqual(resolveOrder(undefined, []), defaultOrder());
+  assert.deepEqual(resolveOrder('boh', []), defaultOrder());
+});
+
+test('ordine: moveInOrder sposta di un posto fra quelli mostrati e si ferma ai margini', () => {
+  const order = ['a', 'b', 'c', 'd'];
+  assert.deepEqual(moveInOrder(order, order, 'c', -1), ['a', 'c', 'b', 'd']);
+  assert.deepEqual(moveInOrder(order, order, 'b', 1), ['a', 'c', 'b', 'd']);
+  assert.equal(moveInOrder(order, order, 'a', -1), order);
+  assert.equal(moveInOrder(order, order, 'd', 1), order);
+  // un blocco nascosto (archiviato) in mezzo non conta: si scavalca il vicino visibile
+  assert.deepEqual(moveInOrder(order, ['a', 'c', 'd'], 'c', -1), ['c', 'a', 'b', 'd']);
+  assert.deepEqual(moveInOrder(order, ['a', 'c', 'd'], 'a', 1), ['b', 'c', 'a', 'd']);
+});
+
+test('ordine: orderDefs mette i moduli nell\'ordine scelto e ricava sopra/sotto dalla posizione delle voci', async () => {
+  const db = await freshDb();
+  const mine = await createCustomDef(db, { name: 'Mio', type: 'text' }, NOW);
+  const defs = await listAllDefs(db);
+  const slots = (list) => list.map((d) => `${d.id}:${d.slot}`);
+  // senza ordine salvato: come prima della scelta
+  const base = orderDefs(defs, []);
+  assert.deepEqual(base.map((d) => d.id), ['quote', 'goals', 'premeditatio', 'negvis', 'control', 'virtues', 'mood', 'evening', mine.id]);
+  assert.ok(base.filter((d) => ['quote', 'goals', 'premeditatio', 'negvis'].includes(d.id)).every((d) => d.slot === 'top'));
+  assert.ok(base.filter((d) => !['quote', 'goals', 'premeditatio', 'negvis'].includes(d.id)).every((d) => d.slot === 'bottom'));
+  // le voci in cima: tutto va sotto
+  const entriesFirst = orderDefs(defs, [ENTRIES_ID, 'evening', 'goals']);
+  assert.deepEqual(entriesFirst.slice(0, 2).map((d) => d.id), ['evening', 'goals']);
+  assert.ok(entriesFirst.every((d) => d.slot === 'bottom'), slots(entriesFirst).join());
+  // le voci in fondo: tutto va sopra, anche il modulo tuo
+  const entriesLast = orderDefs(defs, [mine.id, ...defaultOrder([mine.id]).filter((id) => id !== ENTRIES_ID && id !== mine.id), ENTRIES_ID]);
+  assert.equal(entriesLast[0].id, mine.id);
+  assert.ok(entriesLast.every((d) => d.slot === 'top'));
+  // un elenco salvato a metà lascia le voci dov'erano di partenza
+  assert.equal(orderDefs(defs, [mine.id, 'negvis']).find((d) => d.id === 'control').slot, 'bottom');
+  // un modulo archiviato non compare ma non rompe l'ordine
+  assert.equal((await listAllDefs(db)).length, 9);
+});
+
+test('ordine: si salva nelle impostazioni, si controlla e passa nel backup', async () => {
+  const db = await freshDb();
+  assert.deepEqual((await getSettings(db)).moduleOrder, []);
+  await setModuleOrder(db, ['evening', ENTRIES_ID, 'goals'], NOW);
+  assert.deepEqual((await getSettings(db)).moduleOrder, ['evening', ENTRIES_ID, 'goals']);
+  assert.equal(checkSettings({ moduleOrder: 'x' }).length, 1);
+  assert.equal(checkSettings({ moduleOrder: [1] }).length, 1);
+  assert.deepEqual(checkSettings({ moduleOrder: ['goals', ENTRIES_ID] }), []);
+  const file = await buildExport(db, NOW);
+  const other = await freshDb();
+  const check = validateImport(JSON.parse(JSON.stringify(file)));
+  assert.ok(check.ok);
+  await importData(other, check.data, 'replace');
+  assert.deepEqual((await getSettings(other)).moduleOrder, ['evening', ENTRIES_ID, 'goals']);
 });

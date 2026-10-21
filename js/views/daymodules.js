@@ -1,6 +1,6 @@
 // Quali moduli ci sono in un giorno e quali mostrare: serve sia alla pagina di modifica sia alla lettura.
 
-import { arrangeForDay, enabledIds, getDay, listAllDefs, listInstancesForDay } from '../modules.js';
+import { arrangeForDay, enabledIds, getDay, listAllDefs, listInstancesForDay, orderDefs } from '../modules.js';
 import { getSettings } from '../settings.js';
 
 /**
@@ -9,7 +9,8 @@ import { getSettings } from '../settings.js';
  * `includeArchived`: anche i moduli archiviati (in lettura i giorni passati mostrano ciò che hai scritto allora).
  */
 export async function loadDayModules(db, date, { includeArchived = false } = {}) {
-  const [defs, settings, day, instances] = await Promise.all([listAllDefs(db, { includeArchived }), getSettings(db), getDay(db, date), listInstancesForDay(db, date)]);
+  const [all, settings, day, instances] = await Promise.all([listAllDefs(db, { includeArchived }), getSettings(db), getDay(db, date), listInstancesForDay(db, date)]);
+  const defs = orderDefs(all, settings.moduleOrder); // nell'ordine scelto, con «sopra/sotto le voci» ricavato da lì
   const enabled = enabledIds(settings);
   return { defs, enabled, day, instances, ...arrangeForDay(defs, enabled, day, instances) };
 }

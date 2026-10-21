@@ -9,6 +9,7 @@ import { hideCover, showCover, showLockScreen } from './lockscreen.js';
 import { shouldRelock } from './lockpolicy.js';
 import { lockState, refreshLockState } from './lockstate.js';
 import { initNavigation, setCurrentHash, settleScroll } from './navigation.js';
+import { recordTiming, takeTap } from './perf.js';
 import { activeTab, parseRoute } from './routes.js';
 import { getSettings } from './settings.js';
 import { initToolbar } from './toolbar.js';
@@ -28,26 +29,35 @@ let renderToken = 0;
 let locked = false; // la schermata di blocco è aperta: nessun contenuto del diario nella pagina
 let hiddenAt = null; // quando l'app è andata in background
 
-async function render() {
+const SCREEN_NAME = { today: 'Oggi', day: 'Giorno', archive: 'Archivio', goals: 'Obiettivi', goal: 'Obiettivo', settings: 'Impostazioni' };
+
+/**
+ * Disegna la schermata dell'indirizzo corrente. `ahead` = { hash, state } per disegnare una schermata PRIMA che la
+ * cronologia del browser sia arrivata lì (il «torna a Oggi» è lento: vedi navigation.js).
+ */
+async function render(ahead = null) {
   if (locked) {
     settleScroll();
     return;
   }
   const token = ++renderToken;
+  const started = takeTap();
   const today = todayStr();
-  const route = parseRoute(location.hash, today);
-  setCurrentHash(location.hash || '#/oggi');
+  const hash = ahead?.hash ?? location.hash;
+  const route = parseRoute(hash, today);
+  setCurrentHash(hash || '#/oggi');
+
+  // la barra in basso risponde subito al tocco, prima di tutto il resto
+  const active = activeTab(route, ahead?.state ?? history.state);
+  document.querySelectorAll('.tabbar a').forEach((a) => {
+    if (a.getAttribute('href') === active) a.setAttribute('aria-current', 'page');
+    else a.removeAttribute('aria-current');
+  });
 
   await flushAll();
   await current?.destroy();
   current = null;
   if (token !== renderToken || locked) return; // nel frattempo si è cambiata schermata o si è bloccata l'app
-
-  const active = activeTab(route, history.state);
-  document.querySelectorAll('.tabbar a').forEach((a) => {
-    if (a.getAttribute('href') === active) a.setAttribute('aria-current', 'page');
-    else a.removeAttribute('aria-current');
-  });
 
   view.classList.remove('view-in');
   try {
@@ -70,6 +80,7 @@ async function render() {
   settleScroll();
   void view.offsetWidth; // riavvia la breve dissolvenza
   view.classList.add('view-in');
+  recordTiming(SCREEN_NAME[route.name] ?? 'Schermata', performance.now() - started);
 }
 
 // Toglie il diario dalla pagina e chiede di sbloccare; poi ridisegna la schermata corrente.

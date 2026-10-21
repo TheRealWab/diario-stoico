@@ -55,7 +55,7 @@ button { cursor: pointer; }
 
 .view-in { animation: view-in var(--dur) var(--ease); }
 @keyframes view-in {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0.55; transform: translateY(2px); } /* mai del tutto trasparente: la pagina non sembra sparire e tornare */
   to { opacity: 1; transform: none; }
 }
 
@@ -743,6 +743,12 @@ select.text-input { appearance: auto; }
 .mod-setting .hint { margin: 0 0 var(--space-1) calc(1.25rem + var(--space-2)); }
 .mod-setting-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-left: calc(1.25rem + var(--space-2)); }
 .mod-setting + .row { margin-top: var(--space-3); }
+.mod-list + .row { margin-top: var(--space-3); }
+.mod-head { display: flex; align-items: center; gap: var(--space-2); }
+.mod-head .check-row { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.mod-fixed { padding-left: calc(1.25rem + var(--space-2)); font-weight: 600; } /* allineato ai nomi dei moduli, che hanno la spunta a sinistra */
+.mod-move { display: flex; flex: none; }
+.mod-move .icon-btn:disabled { opacity: 0.25; cursor: default; }
 .mod-sub { margin: var(--space-4) 0 var(--space-2); font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
 
 /* ---------- movimento ridotto ---------- */
