@@ -230,7 +230,7 @@ npm install     # una volta sola: installa solo lo strumento dei test
 npm test        # esegue i test automatici (date, Markdown, database, migrazioni, backup, PWA)
 npm start       # server locale su http://localhost:8080
 npm run sw      # aggiorna l'elenco dei file in sw.js: DA FARE dopo ogni modifica ai file dell'app
-npm run icons   # rigenera le icone in icons/
+npm run icons   # rigenera le icone e il disegno del blocco in icons/, dal disegno tools/filosofo.png
 ```
 
 **Versione:** a ogni aggiornamento si cambia `APP_VERSION` in `js/util.js` (e `version` in `package.json`, con `.0` in fondo)

@@ -1,4 +1,4 @@
-// La frase del giorno (in cima a «Oggi») e quella della schermata di blocco.
+// La frase del giorno, in cima a «Oggi».
 // I dati stanno in citazioni.js: frasi alla lettera da testi antichi in traduzioni libere da diritti, con autore e fonte.
 
 import { CITAZIONI } from './citazioni.js';
@@ -18,7 +18,3 @@ export function quoteForDate(date) {
   const n = daysBetween('2026-01-01', date);
   return QUOTES[((n % QUOTES.length) + QUOTES.length) % QUOTES.length];
 }
-
-// Per la schermata di blocco, dove c'è poco spazio: una frase breve a caso.
-const SHORT = QUOTES.filter((q) => q.text.length <= 130);
-export const randomQuote = () => SHORT[Math.floor(Math.random() * SHORT.length)];

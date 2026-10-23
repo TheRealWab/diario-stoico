@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CITAZIONI } from '../js/citazioni.js';
-import { QUOTES, quoteForDate, randomQuote } from '../js/quotes.js';
+import { QUOTES, quoteForDate } from '../js/quotes.js';
 import { addDays } from '../js/dates.js';
 
 test('frasi: ce ne sono 366 (una per ogni giorno, anche bisestile), tutte complete e senza doppioni', () => {
@@ -47,13 +47,6 @@ test('frase del giorno: in 366 giorni si usano tutte le frasi, una sola volta', 
   assert.equal(used.size, 366);
   // anche prima del 2026 (giorni negativi) la funzione risponde
   assert.ok(quoteForDate('2025-12-31').text);
-});
-
-test('frase della schermata di blocco: breve e con autore', () => {
-  for (let i = 0; i < 30; i++) {
-    const q = randomQuote();
-    assert.ok(q.text.length <= 130 && q.author);
-  }
 });
 
 test('frasi: alcune frasi note sono presenti alla lettera, con la fonte giusta', () => {

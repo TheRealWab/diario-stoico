@@ -3,6 +3,14 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 4.3 — 23 ottobre 2026
+- **Nuova icona:** il filosofo che scrive nel diario, in bianco e nero come una xilografia (disegno in `tools/filosofo.png`),
+  nei colori dell'app: inchiostro scuro su carta crema.
+- **Schermata dell'impronta:** al posto della frase c'è il disegno, grande, sopra il nome. Col tema scuro resta su un riquadro crema.
+  La frase si legge in «Oggi», nella frase del giorno.
+- Nessuna migrazione del database.
+- Sul telefono l'icona nuova può comparire solo dopo un po', o dopo aver tolto e rimesso l'app nella Home: Android aggiorna le icone quando vuole lui.
+
 ## 4.2 — 21 ottobre 2026
 - **Frase del giorno:** 366 frasi, una per ogni giorno, **tutte alla lettera**: nessuna è riscritta da me. Vengono da testi antichi in traduzioni italiane
   libere da diritti (Marco Aurelio, Epitteto, Seneca, Platone, Cicerone, Epicuro e i detti di Socrate, Zenone, Cleante, Diogene, Aristotele, Talete,

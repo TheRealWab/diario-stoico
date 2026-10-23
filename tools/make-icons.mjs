@@ -1,38 +1,62 @@
-// Genera le icone dell'app (PNG) senza librerie esterne: una pagina di diario color crema
-// su fondo terracotta. Uso: npm run icons
+// Genera le icone dell'app e il disegno della schermata di blocco (PNG) senza librerie esterne,
+// partendo dal disegno in bianco e nero tools/filosofo.png (1024×1024): il nero diventa l'inchiostro
+// dell'app, il bianco il crema della carta. Uso: npm run icons
 
-import { deflateSync } from 'node:zlib';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { deflateSync, inflateSync } from 'node:zlib';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
-const TERRACOTTA = [0xb5, 0x57, 0x3a];
+const INK = [0x24, 0x19, 0x13];
 const CREAM = [0xf6, 0xf1, 0xe7];
+const SOURCE = new URL('filosofo.png', import.meta.url);
 const OUT = new URL('../icons/', import.meta.url);
 
-// ---------- forme (coordinate 0..1) ----------
+// ---------- PNG: lettura (8 bit, RGB o RGBA, non interlacciato) ----------
 
-function roundRectDist(x, y, cx, cy, hw, hh, r) {
-  const dx = Math.abs(x - cx) - (hw - r);
-  const dy = Math.abs(y - cy) - (hh - r);
-  return Math.hypot(Math.max(dx, 0), Math.max(dy, 0)) + Math.min(Math.max(dx, dy), 0) - r;
-}
-const inRoundRect = (x, y, cx, cy, hw, hh, r) => roundRectDist(x, y, cx, cy, hw, hh, r) <= 0;
-const bar = (x, y, x0, x1, cy, thick) => inRoundRect(x, y, (x0 + x1) / 2, cy, (x1 - x0) / 2, thick / 2, thick / 2);
-
-/** Colore del punto (x,y), oppure null se trasparente. */
-function sample(x, y, { rounded }) {
-  if (rounded && !inRoundRect(x, y, 0.5, 0.5, 0.5, 0.5, 0.22)) return null;
-  if (inRoundRect(x, y, 0.5, 0.5, 0.19, 0.25, 0.03)) {
-    const ink =
-      bar(x, y, 0.39, 0.52, 0.37, 0.042) || // titolo
-      bar(x, y, 0.39, 0.61, 0.47, 0.026) ||
-      bar(x, y, 0.39, 0.61, 0.55, 0.026) ||
-      bar(x, y, 0.39, 0.54, 0.63, 0.026);
-    return ink ? TERRACOTTA : CREAM;
+function decodePng(buf) {
+  const width = buf.readUInt32BE(16);
+  const height = buf.readUInt32BE(20);
+  const [depth, type, , , interlace] = buf.subarray(24, 29);
+  if (depth !== 8 || (type !== 2 && type !== 6) || interlace) throw new Error('PNG non supportato');
+  const bpp = type === 6 ? 4 : 3;
+  const idat = [];
+  for (let at = 8; at < buf.length; ) {
+    const len = buf.readUInt32BE(at);
+    const kind = buf.toString('ascii', at + 4, at + 8);
+    if (kind === 'IDAT') idat.push(buf.subarray(at + 8, at + 8 + len));
+    at += len + 12;
   }
-  return TERRACOTTA;
+  const raw = inflateSync(Buffer.concat(idat));
+  const stride = width * bpp;
+  const px = Buffer.alloc(stride * height);
+  for (let y = 0; y < height; y++) {
+    const filter = raw[y * (stride + 1)];
+    const line = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1));
+    for (let x = 0; x < stride; x++) {
+      const a = x >= bpp ? px[y * stride + x - bpp] : 0;
+      const b = y ? px[(y - 1) * stride + x] : 0;
+      const c = x >= bpp && y ? px[(y - 1) * stride + x - bpp] : 0;
+      let pred = 0;
+      if (filter === 1) pred = a;
+      else if (filter === 2) pred = b;
+      else if (filter === 3) pred = (a + b) >> 1;
+      else if (filter === 4) {
+        const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+        pred = pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+      }
+      px[y * stride + x] = (line[x] + pred) & 0xff;
+    }
+  }
+  // quanto inchiostro c'è in ogni pixel (0 = carta, 1 = nero pieno): le sfumature grigie del fondo spariscono
+  const ink = new Float32Array(width * height);
+  for (let i = 0; i < width * height; i++) {
+    const o = i * bpp;
+    const l = 0.299 * px[o] + 0.587 * px[o + 1] + 0.114 * px[o + 2];
+    ink[i] = Math.max(0, Math.min(1, (215 - l) / (215 - 60)));
+  }
+  return { width, height, ink };
 }
 
-// ---------- PNG ----------
+// ---------- PNG: scrittura ----------
 
 const crcTable = Array.from({ length: 256 }, (_, n) => {
   let c = n;
@@ -53,25 +77,45 @@ function chunk(type, data) {
   return Buffer.concat([len, body, crc]);
 }
 
-function render(size, opts) {
+// ---------- forme ----------
+
+function roundRectDist(x, y, cx, cy, hw, hh, r) {
+  const dx = Math.abs(x - cx) - (hw - r);
+  const dy = Math.abs(y - cy) - (hh - r);
+  return Math.hypot(Math.max(dx, 0), Math.max(dy, 0)) + Math.min(Math.max(dx, dy), 0) - r;
+}
+
+/**
+ * Ritaglia il quadrato [x, y, lato] del disegno e lo rimpicciolisce a size×size.
+ * pad: margine di carta attorno (frazione del lato); rounded: angoli arrotondati trasparenti.
+ */
+function render(src, [cx0, cy0, side], size, { pad = 0, rounded = false } = {}) {
   const SS = 4; // 4x4 campioni per pixel: bordi morbidi
+  const inkAt = (sx, sy) => {
+    const x = Math.min(src.width - 1, Math.max(0, Math.floor(sx)));
+    const y = Math.min(src.height - 1, Math.max(0, Math.floor(sy)));
+    return src.ink[y * src.width + x];
+  };
   const raw = Buffer.alloc((size * 4 + 1) * size);
   for (let py = 0; py < size; py++) {
     raw[py * (size * 4 + 1)] = 0; // filtro "nessuno"
     for (let px = 0; px < size; px++) {
-      let r = 0, g = 0, b = 0, a = 0;
+      let ink = 0, inside = 0;
       for (let sy = 0; sy < SS; sy++) {
         for (let sx = 0; sx < SS; sx++) {
-          const c = sample((px + (sx + 0.5) / SS) / size, (py + (sy + 0.5) / SS) / size, opts);
-          if (c) { r += c[0]; g += c[1]; b += c[2]; a++; }
+          const u = (px + (sx + 0.5) / SS) / size;
+          const v = (py + (sy + 0.5) / SS) / size;
+          if (rounded && roundRectDist(u, v, 0.5, 0.5, 0.5, 0.5, 0.22) > 0) continue;
+          inside++;
+          const iu = (u - pad) / (1 - 2 * pad), iv = (v - pad) / (1 - 2 * pad);
+          if (iu >= 0 && iu < 1 && iv >= 0 && iv < 1) ink += inkAt(cx0 + iu * side, cy0 + iv * side);
         }
       }
       const o = py * (size * 4 + 1) + 1 + px * 4;
-      if (a) {
-        raw[o] = Math.round(r / a);
-        raw[o + 1] = Math.round(g / a);
-        raw[o + 2] = Math.round(b / a);
-        raw[o + 3] = Math.round((a / (SS * SS)) * 255);
+      if (inside) {
+        const a = ink / inside;
+        for (let k = 0; k < 3; k++) raw[o + k] = Math.round(CREAM[k] * (1 - a) + INK[k] * a);
+        raw[o + 3] = Math.round((inside / (SS * SS)) * 255);
       }
     }
   }
@@ -88,14 +132,20 @@ function render(size, opts) {
   ]);
 }
 
+const src = decodePng(readFileSync(SOURCE));
+const SCENE = [120, 10, 900]; // filosofo, mani e diario: lascia fuori solo il bordo vuoto
+const WHOLE = [0, 0, 1024];
+
 mkdirSync(OUT, { recursive: true });
-const icons = [
-  ['icon-192.png', 192, { rounded: true }],
-  ['icon-512.png', 512, { rounded: true }],
-  ['icon-maskable-512.png', 512, { rounded: false }], // a tutto campo: lo ritaglia Android
-  ['apple-touch-icon-180.png', 180, { rounded: false }],
+const images = [
+  ['icon-192.png', SCENE, 192, { rounded: true }],
+  ['icon-512.png', SCENE, 512, { rounded: true }],
+  // a tutto campo: Android ne mostra solo il centro (circa l'80%), quindi il disegno sta dentro con un margine
+  ['icon-maskable-512.png', SCENE, 512, { pad: 0.14 }],
+  ['apple-touch-icon-180.png', SCENE, 180, {}],
+  ['filosofo.png', WHOLE, 720, {}], // schermata di blocco
 ];
-for (const [name, size, opts] of icons) {
-  writeFileSync(new URL(name, OUT), render(size, opts));
+for (const [name, crop, size, opts] of images) {
+  writeFileSync(new URL(name, OUT), render(src, crop, size, opts));
   console.log('creata', name);
 }

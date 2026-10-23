@@ -9,7 +9,6 @@ import { h } from './dom.js';
 import { EMPTY_LOCKOUT, saveLockout } from './lockout.js';
 import { createPinPad } from './pinpad.js';
 import { currentWaitMs, tryPin, waitMessage } from './pincheck.js';
-import { randomQuote } from './quotes.js';
 import { authenticateFingerprint, fingerprintAvailable } from './webauthn.js';
 
 let cover = null;
@@ -24,12 +23,6 @@ export function showCover() {
 
 export function hideCover() {
   cover?.classList.remove('is-on');
-}
-
-// una frase breve, alla lettera, con l'autore (le altre informazioni stanno nella frase del giorno in Oggi)
-function lockQuote() {
-  const q = randomQuote();
-  return h('div', {}, h('p', { class: 'lock-quote' }, q.text), h('p', { class: 'lock-quote-by' }, `— ${q.author}`));
 }
 
 const inertTargets = () => [document.getElementById('view'), document.querySelector('.tabbar'), document.querySelector('.toolbar')].filter(Boolean);
@@ -47,7 +40,12 @@ export async function showLockScreen(settings) {
   const root = h(
     'div',
     { class: 'lock', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Diario Stoico bloccato' },
-    h('div', { class: 'lock-top' }, h('p', { class: 'lock-brand' }, 'Diario Stoico'), lockQuote()),
+    h(
+      'div',
+      { class: 'lock-top' },
+      h('img', { class: 'lock-art', src: 'icons/filosofo.png', alt: '', width: 720, height: 720, decoding: 'async' }),
+      h('p', { class: 'lock-brand' }, 'Diario Stoico'),
+    ),
     panel,
   );
   // la schermata compare subito; se c'è l'impronta si scopre un attimo dopo

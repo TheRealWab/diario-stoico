@@ -546,6 +546,14 @@ body.lock-open { overflow: hidden; }
 .lock.is-leaving { opacity: 0; transition: opacity 200ms var(--ease); pointer-events: none; }
 
 .lock-top { text-align: center; max-width: 24rem; }
+/* il disegno è su carta crema: nel tema chiaro si fonde con lo sfondo, in quello scuro resta un riquadro */
+.lock-art {
+  display: block;
+  width: min(17rem, 72vw, 38vh);
+  height: auto;
+  margin: 0 auto var(--space-5);
+  border-radius: var(--radius);
+}
 .lock-brand {
   margin: 0;
   font-family: var(--font-serif);
@@ -560,16 +568,6 @@ body.lock-open { overflow: hidden; }
   margin: var(--space-3) auto var(--space-4);
   background: var(--accent);
 }
-.lock-quote {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-size: 1.0625rem;
-  line-height: 1.6;
-  color: var(--ink-soft);
-  text-wrap: balance;
-}
-.lock-quote-by { margin: var(--space-2) 0 0; font-size: 0.875rem; color: var(--ink-soft); }
 
 .lock-panel { display: grid; justify-items: center; gap: var(--space-4); width: 100%; max-width: 20rem; }
 .btn-wide { width: 100%; min-height: 3.5rem; }

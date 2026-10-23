@@ -5,7 +5,7 @@
 // IndexedDB e questo file non li tocca mai.
 
 // <precache> (generato da tools/update-sw.mjs: non modificare a mano)
-const CACHE_VERSION = '289d5d914aaf';
+const CACHE_VERSION = 'e874286930f5';
 const PRECACHE = [
   "css/app.css",
   "css/theme.css",
@@ -13,6 +13,7 @@ const PRECACHE = [
   "fonts/lora-latin-wght-italic.woff2",
   "fonts/lora-latin-wght-normal.woff2",
   "icons/apple-touch-icon-180.png",
+  "icons/filosofo.png",
   "icons/icon-192.png",
   "icons/icon-512.png",
   "icons/icon-maskable-512.png",
