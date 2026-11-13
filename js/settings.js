@@ -26,6 +26,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   modulesConfigured: false, // diventa vero alla prima scelta nelle impostazioni dei moduli
   quoteChosen: false, // diventa vero quando si accende o si spegne la frase del giorno: finché è falso, la frase c'è
   moduleOrder: [], // ordine dei blocchi della pagina del giorno (moduli e «voci»); vuoto = ordine di partenza (vedi modules.js)
+  openModules: ['quote', 'goals'], // i moduli lasciati APERTI nella pagina del giorno: gli altri mostrano solo titolo e riassunto
   lastBackupDate: null, // "AAAA-MM-GG" locale
   backupReminderDays: 14, // dopo quanti giorni senza backup compare il promemoria in «Oggi»; 0 = mai (vedi backup-reminder.js)
   backupSnoozeUntil: null, // "AAAA-MM-GG": fino a quel giorno il promemoria tace («Non ora»)
@@ -52,6 +53,9 @@ export function checkSettings(s) {
   }
   if ('enabledModules' in s && (!Array.isArray(s.enabledModules) || s.enabledModules.length > 200 || s.enabledModules.some((id) => typeof id !== 'string' || !id))) {
     problems.push('Impostazione "enabledModules" non valida.');
+  }
+  if ('openModules' in s && (!Array.isArray(s.openModules) || s.openModules.length > 200 || s.openModules.some((id) => typeof id !== 'string' || !id))) {
+    problems.push('Impostazione "openModules" non valida.');
   }
   if ('quoteChosen' in s && typeof s.quoteChosen !== 'boolean') problems.push('Impostazione "quoteChosen" non valida.');
   if ('moduleOrder' in s && (!Array.isArray(s.moduleOrder) || s.moduleOrder.length > 300 || s.moduleOrder.some((id) => typeof id !== 'string' || !id))) {
@@ -86,4 +90,21 @@ export async function saveSettings(db, patch, now = new Date()) {
     id: SETTINGS_ID,
     updatedAt: stamp,
   }));
+}
+
+/**
+ * Come saveSettings, ma il cambiamento si calcola dai valori attuali, letti e riscritti nella stessa transazione:
+ * `change(impostazioni)` restituisce i campi da cambiare. Serve quando due tocchi ravvicinati modificano lo stesso elenco.
+ */
+export async function changeSettings(db, change, now = new Date()) {
+  const stamp = nowIso(now);
+  let problems = [];
+  const saved = await update(db, 'settings', SETTINGS_ID, (old) => {
+    const patch = change({ ...DEFAULT_SETTINGS, ...old });
+    problems = checkSettings(patch);
+    if (problems.length) return undefined; // non si scrive nulla
+    return { ...DEFAULT_SETTINGS, createdAt: stamp, ...old, ...patch, id: SETTINGS_ID, updatedAt: stamp };
+  });
+  if (problems.length) throw new Error(problems[0]);
+  return saved;
 }

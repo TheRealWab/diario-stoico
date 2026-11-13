@@ -49,7 +49,9 @@ vale quanto quattro moduli e non esiste una giornata «incompleta». Niente punt
 - **Tuoi:** crei un modulo con nome, frase-guida facoltativa e un tipo: testo libero, elenco spuntabile, valutazione da 1 a 5,
   scelta tra opzioni. Ci sono anche tre **modelli pronti** (Prima impressione, Persone difficili, Principio a portata di mano), spenti di base.
 - **Quali compaiono:** in *Impostazioni → Moduli* scegli quelli attivi ogni giorno. All'inizio ci sono la **frase del giorno** e la striscia degli **obiettivi**.
-  In ogni giornata puoi **nascondere** un modulo («Nascondi») o **aggiungerne** un altro («+ Aggiungi modulo»).
+  In ogni giornata puoi **nascondere** un modulo («Nascondi per oggi», in fondo al modulo aperto) o **aggiungerne** un altro («+ Aggiungi modulo»).
+- **Aperti e chiusi:** ogni modulo si apre e si chiude toccando il titolo e resta come lo lasci, anche nei giorni dopo (impostazione `openModules`).
+  Chiuso mostra solo il titolo e una riga con quello che hai scritto. All'inizio sono aperti la frase del giorno e gli obiettivi. In lettura (giorni passati) è tutto aperto.
 - **Ordine:** in *Impostazioni → Moduli* le frecce ▲ ▼ spostano ogni modulo, e anche **«Le tue voci»** (dove scrivi), che è un blocco come gli altri:  i moduli prima delle voci stanno sopra, quelli dopo stanno sotto. L'ordine vale per tutti i giorni (impostazione `moduleOrder`, vedi `orderDefs` in `js/modules.js`).
 - **Nascondere o archiviare non cancella mai niente:** se riattivi un modulo ritrovi quello che avevi scritto. Un modulo tuo si **archivia**
   (non si elimina): sparisce dalle liste, i dati restano nel diario e nel backup, e nei giorni passati si continuano a leggere.

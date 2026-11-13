@@ -10,8 +10,8 @@
 
 import { get, getAll, getAllByIndex, put, update } from './db.js';
 import { isValidDateStr } from './dates.js';
-import { BUILTIN_MODULES, CUSTOM_TYPES, EVENING_VARIANTS, LIMITS, NO_DATA_TYPES, VIRTUES, isBuiltinId } from './modules-catalog.js';
-import { getSettings, saveSettings } from './settings.js';
+import { BUILTIN_MODULES, CUSTOM_TYPES, ENERGY_WORDS, EVENING_VARIANTS, LIMITS, MOOD_WORDS, NO_DATA_TYPES, VIRTUES, isBuiltinId } from './modules-catalog.js';
+import { changeSettings, getSettings, saveSettings } from './settings.js';
 import { nowIso, uuid } from './util.js';
 
 const isObject = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -123,6 +123,22 @@ export function dataText(type, data) {
     evening: () => d.answers,
   }[type];
   return (parts ? parts() : []).map((p) => p.trim()).filter(Boolean).join('\n');
+}
+
+/**
+ * Quello che c'è in un modulo, in una riga: si legge sotto il titolo quando il modulo è chiuso.
+ * Parole per le parole, e le scelte a tocco dette a parole (umore, virtù, voto). Vuoto → ''.
+ */
+export function dataSummary(type, data) {
+  const d = normalizeData(type, data);
+  const words = dataText(type, d).split('\n').filter(Boolean);
+  const virtueNames = (ids) => ids.map((id) => VIRTUES.find((v) => v.id === id).name.toLowerCase()).join(', ');
+  const parts = {
+    mood: () => [d.mood ? MOOD_WORDS[d.mood - 1] : '', d.energy ? `energia ${ENERGY_WORDS[d.energy - 1].toLowerCase()}` : ''],
+    virtues: () => [d.exercised.length ? `Esercitata: ${virtueNames(d.exercised)}` : '', d.missed.length ? `Da curare: ${virtueNames(d.missed)}` : '', ...words],
+    rating: () => [d.value ? `${d.value} su 5` : ''],
+  }[type];
+  return (parts ? parts() : words).filter(Boolean).join(' · ');
 }
 
 // ---------- controlli (anche per i backup) ----------
@@ -292,6 +308,27 @@ export async function setModuleEnabled(db, id, on, now) {
   const patch = { enabledModules: [...ids], modulesConfigured: true };
   if (id === 'quote') patch.quoteChosen = true; // una scelta fatta: da qui in poi vale quella
   return saveSettings(db, patch, now);
+}
+
+// ---------- aperti e chiusi ----------
+
+/**
+ * Nella pagina del giorno ogni modulo si apre e si chiude toccando il titolo, e resta come lo si lascia (anche nei giorni
+ * dopo). Si ricordano quelli APERTI: all'inizio la frase del giorno e gli obiettivi; un modulo nuovo nasce chiuso.
+ */
+export const openIds = (settings) => new Set(Array.isArray(settings?.openModules) ? settings.openModules : []);
+
+export function setModuleOpen(db, id, open, now) {
+  return changeSettings(
+    db,
+    (settings) => {
+      const ids = openIds(settings);
+      if (open) ids.add(id);
+      else ids.delete(id);
+      return { openModules: [...ids] };
+    },
+    now,
+  );
 }
 
 // ---------- un giorno ----------

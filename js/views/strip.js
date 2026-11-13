@@ -1,5 +1,6 @@
 // La striscia degli obiettivi nella pagina di un giorno: quelli del giorno e quelli della sua settimana,
 // spuntabili con un tocco, senza uscire dal diario. Un campo veloce per aggiungere un obiettivo del giorno.
+// Dove si scrive è un riquadro che si apre e si chiude come i moduli (`collapse`); in lettura è sempre aperto.
 
 import { todayStr } from '../dates.js';
 import { h, setChildren } from '../dom.js';
@@ -7,17 +8,36 @@ import { TITLE_MAX, createGoal, listForDayStrip } from '../goals.js';
 import { containsDate, periodFor } from '../periods.js';
 import { goalsHash } from '../routes.js';
 import { toast } from '../ui.js';
+import { collapsibleCard } from './collapse.js';
 import { goalRow } from './goalrow.js';
 
-export async function buildStrip({ db, date, onHide = null }) {
+/** `collapse`: { open, onToggle(aperto) } per il riquadro richiudibile; senza, la striscia semplice della lettura. */
+export async function buildStrip({ db, date, onHide = null, collapse = null }) {
   const today = todayStr();
   const { day, week } = await listForDayStrip(db, date);
   const isToday = date === today;
   const dayLabel = isToday ? 'Oggi' : 'Questo giorno';
   const weekLabel = containsDate(periodFor('settimana', date), today) ? 'Questa settimana' : 'Settimana';
 
-  const root = h('section', { class: 'strip', 'aria-label': 'Obiettivi' });
   const adder = h('div', { class: 'strip-adder' });
+  // il contenuto (gruppi di obiettivi e campo per aggiungerne) si ridisegna; nel riquadro richiudibile titolo e comandi restano fermi
+  const content = collapse ? h('div', { class: 'strip-content' }) : null;
+  const card = collapse
+    ? collapsibleCard({
+        className: 'module strip',
+        id: 'goals',
+        name: 'Obiettivi',
+        open: collapse.open,
+        onToggle: collapse.onToggle,
+        summarize: () => [...day, ...week].map((g) => g.title).join(' · '),
+        content: [content],
+        foot: [
+          h('a', { class: 'link-quiet', href: goalsHash('settimana') }, 'Tutti gli obiettivi'),
+          onHide ? h('button', { type: 'button', class: 'link-quiet module-hide', 'aria-label': 'Nascondi gli obiettivi per questo giorno', onclick: onHide }, 'Nascondi per oggi') : null,
+        ],
+      })
+    : null;
+  const root = card ? card.element : h('section', { class: 'strip', 'aria-label': 'Obiettivi' });
 
   function group(label, goals) {
     if (!goals.length) return null;
@@ -26,18 +46,10 @@ export async function buildStrip({ db, date, onHide = null }) {
 
   function paint() {
     setChildren(
-      root,
-      h(
-        'div',
-        { class: 'strip-head' },
-        h('h2', {}, 'Obiettivi'),
-        h(
-          'div',
-          { class: 'strip-links' },
-          h('a', { class: 'link-quiet', href: goalsHash('settimana') }, 'Tutti'),
-          onHide ? h('button', { type: 'button', class: 'link-quiet module-hide', 'aria-label': 'Nascondi gli obiettivi per questo giorno', onclick: onHide }, 'Nascondi') : null,
-        ),
-      ),
+      content ?? root,
+      content
+        ? null
+        : h('div', { class: 'strip-head' }, h('h2', {}, 'Obiettivi'), h('div', { class: 'strip-links' }, h('a', { class: 'link-quiet', href: goalsHash('settimana') }, 'Tutti'))),
       group(dayLabel, day),
       group(weekLabel, week),
       day.length || week.length ? null : h('p', { class: 'hint' }, isToday ? 'Nessun obiettivo per oggi.' : 'Nessun obiettivo per questo giorno.'),

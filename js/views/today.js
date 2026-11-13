@@ -10,7 +10,7 @@ import { get } from '../db.js';
 import { LABELS, compareEntries, createEntry, defaultLabel, deleteEntry, isEmptyEntry, listEntriesForDay, restoreEntry, updateEntry } from '../entries.js';
 import { pickModuleDialog } from '../moduledialogs.js';
 import { NO_DATA_TYPES } from '../modules-catalog.js';
-import { setVisibleForDay } from '../modules.js';
+import { setModuleOpen, setVisibleForDay } from '../modules.js';
 import { go } from '../navigation.js';
 import { getSettings, saveSettings } from '../settings.js';
 import { toast } from '../ui.js';
@@ -44,8 +44,11 @@ export async function mountToday({ db, container, date }) {
     ctx = await loadDayModules(db, date);
     const build = async (def) => {
       const onHide = () => hideModule(def);
-      if (def.type === 'goals') return buildStrip({ db, date, onHide });
-      const card = moduleCard({ db, def, date, instance: ctx.instances.get(def.id), onHide });
+      // aperto o chiuso come l'hai lasciato: la scelta si ricorda (anche per i giorni dopo)
+      const open = ctx.open.has(def.id);
+      const onToggle = (isOpen) => setModuleOpen(db, def.id, isOpen).catch((err) => console.warn('Scelta aperto/chiuso non salvata:', err));
+      if (def.type === 'goals') return buildStrip({ db, date, onHide, collapse: { open, onToggle } });
+      const card = moduleCard({ db, def, date, instance: ctx.instances.get(def.id), onHide, open, onToggle });
       cards.add(card);
       return card.element;
     };
@@ -84,6 +87,7 @@ export async function mountToday({ db, container, date }) {
     if (choice === 'settings') return go('#/impostazioni', 'tab');
     try {
       await setVisibleForDay(db, date, choice, true, ctx.enabled);
+      await setModuleOpen(db, choice, true); // lo hai appena chiesto: compare aperto
       await renderModules();
       page.querySelector(`[data-module="${CSS.escape(choice)}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
     } catch (err) {

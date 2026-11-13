@@ -3,6 +3,17 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 4.5 — 13 novembre 2026
+- **Moduli richiudibili:** nella pagina del giorno ogni modulo (anche la frase del giorno e gli obiettivi) si apre e si chiude toccando il titolo,
+  e resta come lo lasci, anche nei giorni dopo. Chiuso mostra il titolo e, in una riga, quello che hai scritto (per esempio «Bene · energia media»).
+  Con tutti i moduli accesi la pagina passa da circa sei schermate a meno di tre.
+- **Dopo l'aggiornamento** sono aperti solo la frase del giorno e gli obiettivi: gli altri moduli li trovi chiusi, e li apri con un tocco.
+  Un modulo aggiunto con «+ Aggiungi modulo» compare già aperto.
+- **«Nascondi»** non è più sempre in vista accanto al titolo: è diventato «Nascondi per oggi», in fondo al modulo aperto. Per gli obiettivi,
+  lì accanto c'è «Tutti gli obiettivi».
+- Nei giorni passati aperti in lettura non cambia nulla: è tutto aperto, da leggere.
+- Nessuna migrazione del database: quello che hai scritto non viene toccato.
+
 ## 4.4 — 13 novembre 2026
 - **Voci vuote:** toccare «Nuova voce» e poi non scrivere non lascia più una voce vuota. Prima quel giorno prendeva il puntino nel calendario
   e in Cronologia compariva «1 voce» senza testo. Le voci vuote rimaste da prima spariscono da sole alla prossima apertura di quel giorno.
