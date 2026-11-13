@@ -27,9 +27,13 @@ export const DEFAULT_SETTINGS = Object.freeze({
   quoteChosen: false, // diventa vero quando si accende o si spegne la frase del giorno: finché è falso, la frase c'è
   moduleOrder: [], // ordine dei blocchi della pagina del giorno (moduli e «voci»); vuoto = ordine di partenza (vedi modules.js)
   lastBackupDate: null, // "AAAA-MM-GG" locale
+  backupReminderDays: 14, // dopo quanti giorni senza backup compare il promemoria in «Oggi»; 0 = mai (vedi backup-reminder.js)
+  backupSnoozeUntil: null, // "AAAA-MM-GG": fino a quel giorno il promemoria tace («Non ora»)
 });
 
-const ENUMS = { theme: THEMES, font: FONTS, fontSize: FONT_SIZES, lineSpacing: LINE_SPACINGS };
+export const BACKUP_REMINDER_DAYS = [0, 7, 14, 30];
+
+const ENUMS = { theme: THEMES, font: FONTS, fontSize: FONT_SIZES, lineSpacing: LINE_SPACINGS, backupReminderDays: BACKUP_REMINDER_DAYS };
 
 // Dati del blocco: legati a QUESTO telefono. Non finiscono nei backup e un'importazione non li tocca.
 export const LOCK_KEYS = ['lockEnabled', 'pinHash', 'webauthn'];
@@ -42,6 +46,9 @@ export function checkSettings(s) {
   }
   if ('lastBackupDate' in s && s.lastBackupDate !== null && !/^\d{4}-\d{2}-\d{2}$/.test(s.lastBackupDate)) {
     problems.push('Data dell\'ultimo backup non valida.');
+  }
+  if ('backupSnoozeUntil' in s && s.backupSnoozeUntil !== null && !/^\d{4}-\d{2}-\d{2}$/.test(s.backupSnoozeUntil)) {
+    problems.push('Data del promemoria del backup non valida.');
   }
   if ('enabledModules' in s && (!Array.isArray(s.enabledModules) || s.enabledModules.length > 200 || s.enabledModules.some((id) => typeof id !== 'string' || !id))) {
     problems.push('Impostazione "enabledModules" non valida.');

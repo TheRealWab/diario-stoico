@@ -16,7 +16,7 @@ server, nessun tracciamento.
 - Frecce per andare al giorno precedente e successivo. I giorni passati si aprono in **lettura** (pulita, a tutta pagina) con un tocco su «Modifica» per scrivere.
 - Editor semplice: grassetto, corsivo, titoletti, elenchi puntati e numerati. La barra degli strumenti compare solo mentre scrivi.
 - Salvataggio automatico: non c'è un pulsante «salva».
-- **Archivio:** calendario mensile con un puntino sui giorni scritti, «Vai a data», cronologia dei giorni e **ricerca** per parola (ignora maiuscole e accenti).
+- **Archivio:** calendario mensile con un puntino sui giorni in cui hai scritto (una voce o anche solo un modulo), «Vai a data», cronologia dei giorni e **ricerca** per parola in voci, moduli e obiettivi (ignora maiuscole e accenti).
 - **Blocco** con impronta (o PIN): vedi il paragrafo «Il blocco» più sotto.
 - Tema carta o scuro (o quello del sistema), carattere serif o sans, quattro dimensioni del testo.
 - Backup e ripristino in un file JSON.
@@ -152,7 +152,7 @@ stato spostato o cancellato, l'app te lo dice e ti fa sceglierne uno nuovo. Dove
 un gestore di password o scritta in un posto sicuro, separata dal file. Un file cifrato non «chiede» la password da solo:
 è semplicemente illeggibile; per aprirlo serve l'app (o un programma che conosca il formato) e la password giusta.
 
-Accanto al pulsante leggi «ultimo backup: …» (è solo un'informazione, non un promemoria).
+Accanto al pulsante leggi «ultimo backup: …». Se passano troppi giorni senza un backup (14, oppure 7 o 30: lo scegli lì sotto, o «Mai»), in «Oggi» compare un promemoria sobrio, con «Fai il backup» e «Non ora» (che lo fa tacere per tre giorni).
 
 **Ripristinare:** *Impostazioni → Importa da file…*, scegli il file. L'app lo controlla e ti mostra un riepilogo
 (quante voci, da quando a quando). Finché non scegli, **non cambia nulla**. Poi decidi:

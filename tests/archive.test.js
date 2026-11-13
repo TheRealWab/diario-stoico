@@ -2,11 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import 'fake-indexeddb/auto';
 import { freshDb } from './helpers.js';
-import { createEntry } from '../js/entries.js';
-import { dayPreview, listDays, monthDays } from '../js/archive.js';
+import { createEntry, deleteEntry, isEmptyEntry, listEntriesForDay, restoreEntry } from '../js/entries.js';
+import { dayPreview, firstWrittenDate, listDays, monthDays, writtenLabel } from '../js/archive.js';
 import { monthGrid } from '../js/calendar.js';
 import { addMonths, daysInMonth, isValidMonthStr, monthLabel, monthOf, weekdayIndex } from '../js/dates.js';
-import { findRanges, normalize, searchEntries, snippet, tokenize } from '../js/search.js';
+import { createCustomDef, dataText, saveInstance } from '../js/modules.js';
+import { findRanges, normalize, searchEntries, searchItems, snippet, tokenize } from '../js/search.js';
 
 // ---------- date e calendario ----------
 
@@ -63,10 +64,101 @@ async function seeded() {
 test('monthDays conta le voci per giorno e non esce dal mese', async () => {
   const db = await seeded();
   const aug = await monthDays(db, '2026-08');
-  assert.deepEqual([...aug], [['2026-08-03', 2], ['2026-08-31', 1]]);
+  assert.deepEqual([...aug], [['2026-08-03', { entries: 2, modules: 0 }], ['2026-08-31', { entries: 1, modules: 0 }]]);
   assert.equal((await monthDays(db, '2026-07')).size, 0);
-  assert.equal((await monthDays(db, '2026-09')).get('2026-09-01'), 1);
+  assert.deepEqual((await monthDays(db, '2026-09')).get('2026-09-01'), { entries: 1, modules: 0 });
   db.close();
+});
+
+test('una voce vuota non conta come scritta: niente puntino, niente cronologia', async () => {
+  const db = await seeded();
+  await createEntry(db, { date: '2026-08-10', time: '08:00' }); // «Nuova voce» toccato e lasciato lì
+  await createEntry(db, { date: '2026-08-03', time: '12:00', content: '   ' });
+  assert.ok(isEmptyEntry({ content: '' }) && isEmptyEntry({ content: ' \n ' }) && !isEmptyEntry({ content: 'una riga' }));
+  const aug = await monthDays(db, '2026-08');
+  assert.equal(aug.has('2026-08-10'), false);
+  assert.deepEqual(aug.get('2026-08-03'), { entries: 2, modules: 0 });
+  const { days } = await listDays(db);
+  assert.ok(!days.some((d) => d.date === '2026-08-10'));
+  assert.equal(days.find((d) => d.date === '2026-08-03').entries.length, 2);
+  db.close();
+});
+
+test('un giorno con soli moduli compare nel calendario e nella cronologia, con la sua anteprima', async () => {
+  const db = await seeded();
+  await saveInstance(db, '2026-08-20', 'evening', 'evening', { answers: ['Ho curato la fretta', '', 'Nella pazienza'] });
+  await saveInstance(db, '2026-08-20', 'mood', 'mood', { mood: 4 });
+  await saveInstance(db, '2026-08-03', 'negvis', 'negvis', { imagine: 'la vista', appreciate: '' });
+  const mine = await createCustomDef(db, { name: 'Gratitudine', type: 'text' });
+  await saveInstance(db, '2026-08-21', mine.id, 'text', { text: 'Il caffè con Anna' });
+
+  const aug = await monthDays(db, '2026-08');
+  assert.deepEqual(aug.get('2026-08-20'), { entries: 0, modules: 2 });
+  assert.deepEqual(aug.get('2026-08-03'), { entries: 2, modules: 1 });
+  assert.deepEqual(aug.get('2026-08-21'), { entries: 0, modules: 1 });
+
+  const { days } = await listDays(db);
+  assert.deepEqual(days.map((d) => d.date), ['2026-10-13', '2026-09-01', '2026-08-31', '2026-08-21', '2026-08-20', '2026-08-03']);
+  const day20 = days.find((d) => d.date === '2026-08-20');
+  assert.deepEqual(day20.modules.map((m) => m.def.id), ['mood', 'evening']); // nell'ordine dei moduli
+  assert.equal(dayPreview(day20.entries, 150, day20.modules), 'Umore ed energia · Esame serale: Ho curato la fretta; Nella pazienza');
+  assert.equal(dayPreview([], 150, days.find((d) => d.date === '2026-08-21').modules), 'Gratitudine: Il caffè con Anna');
+  // a pagine, come prima: un giorno di soli moduli sta al suo posto tra gli altri
+  const p2 = await listDays(db, { before: '2026-08-31', limit: 2 });
+  assert.deepEqual(p2.days.map((d) => d.date), ['2026-08-21', '2026-08-20']);
+  assert.equal(p2.hasMore, true);
+  db.close();
+});
+
+test('writtenLabel: quanto c’è di scritto, a parole', () => {
+  assert.equal(writtenLabel({ entries: 1, modules: 0 }), '1 voce');
+  assert.equal(writtenLabel({ entries: 3, modules: 1 }), '3 voci · 1 modulo');
+  assert.equal(writtenLabel({ entries: 0, modules: 2 }, ', '), '2 moduli');
+});
+
+test('firstWrittenDate: il primo giorno scritto, tra voci e moduli', async () => {
+  const empty = await freshDb();
+  assert.equal(await firstWrittenDate(empty), null);
+  empty.close();
+  const db = await seeded();
+  assert.equal(await firstWrittenDate(db), '2026-08-03');
+  await saveInstance(db, '2026-07-15', 'negvis', 'negvis', { imagine: 'la casa', appreciate: '' });
+  assert.equal(await firstWrittenDate(db), '2026-07-15');
+  db.close();
+});
+
+test('una voce eliminata si può rimettere identica (Annulla)', async () => {
+  const db = await freshDb();
+  const entry = await createEntry(db, { date: '2026-10-13', time: '07:30', label: 'mattina', content: 'Da tenere' });
+  await deleteEntry(db, entry.id);
+  assert.equal((await listEntriesForDay(db, '2026-10-13')).length, 0);
+  await restoreEntry(db, entry);
+  assert.deepEqual(await listEntriesForDay(db, '2026-10-13'), [entry]);
+  db.close();
+});
+
+test('dataText: le parole scritte in un modulo, niente per le scelte a tocco', () => {
+  assert.equal(dataText('premeditatio', { cases: [{ event: 'Piove', response: 'Esco lo stesso' }, { event: '', response: '' }] }), 'Piove\nEsco lo stesso');
+  assert.equal(dataText('evening', { answers: ['uno', '', 'tre'] }), 'uno\ntre');
+  assert.equal(dataText('checklist', { items: [{ text: 'acqua', done: true }] }), 'acqua');
+  assert.equal(dataText('virtues', { exercised: ['wisdom'], note: ' pazienza ' }), 'pazienza');
+  assert.equal(dataText('mood', { mood: 3, energy: 2 }), '');
+  assert.equal(dataText('rating', { value: 4 }), '');
+});
+
+test('searchItems: cerca in qualunque testo (voci, moduli, obiettivi), dal più recente', () => {
+  const items = [
+    { id: 'voce', text: 'Oggi ho avuto pazienza', date: '2026-10-10', time: '08:00' },
+    { id: 'modulo', text: 'La pazienza con mio padre', date: '2026-10-12', time: '' },
+    { id: 'obiettivo', text: 'Camminare ogni giorno\ncon pazienza', date: '2026-10-12', time: '' },
+    { id: 'altro', text: 'Niente da dire', date: '2026-10-13', time: '09:00' },
+  ];
+  const r = searchItems(items, 'PAZIENZA');
+  assert.equal(r.total, 3);
+  assert.deepEqual(r.results.map((x) => x.item.id).sort(), ['modulo', 'obiettivo', 'voce']);
+  assert.equal(r.results.at(-1).item.id, 'voce'); // la più vecchia in fondo
+  assert.ok(r.results[0].parts.some((p) => p.match));
+  assert.equal(searchItems(items, 'p').total, 0);
 });
 
 test('listDays: dal più recente, a pagine, voci in ordine di ora', async () => {

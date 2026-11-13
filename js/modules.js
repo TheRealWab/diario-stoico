@@ -106,6 +106,25 @@ export function isEmptyData(type, data) {
   }
 }
 
+/**
+ * Le parole scritte in un modulo, una parte per riga: per le anteprime dell'archivio e per la ricerca.
+ * Le scelte a tocco (umore, virtù, voto) non hanno testo: restituisce ''.
+ */
+export function dataText(type, data) {
+  const d = normalizeData(type, data);
+  const parts = {
+    text: () => [d.text],
+    checklist: () => d.items.map((i) => i.text),
+    choice: () => [d.value ?? ''],
+    premeditatio: () => d.cases.flatMap((c) => [c.event, c.response]),
+    negvis: () => [d.imagine, d.appreciate],
+    virtues: () => [d.note],
+    control: () => [d.episode, d.mine, d.notmine],
+    evening: () => d.answers,
+  }[type];
+  return (parts ? parts() : []).map((p) => p.trim()).filter(Boolean).join('\n');
+}
+
 // ---------- controlli (anche per i backup) ----------
 
 export function checkModuleDef(def) {

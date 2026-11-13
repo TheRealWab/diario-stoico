@@ -1,13 +1,17 @@
 // Archivio: calendario, cronologia e ricerca.
 
-import { dayPreview, listDays, monthDays } from '../archive.js';
+import { dayPreview, listDays, monthDays, writtenLabel } from '../archive.js';
 import { WEEKDAYS_SHORT, monthGrid } from '../calendar.js';
 import { addMonths, formatLong, isValidDateStr, monthLabel, monthOf, todayStr } from '../dates.js';
 import { getAll } from '../db.js';
 import { h, icon } from '../dom.js';
+import { isEmptyEntry } from '../entries.js';
+import { toPlainText } from '../markdown.js';
+import { dataText, listAllDefs } from '../modules.js';
 import { go, isBackNavigation } from '../navigation.js';
-import { dayHash } from '../routes.js';
-import { MIN_QUERY_LENGTH, searchEntries } from '../search.js';
+import { HORIZON_LABEL, periodLabel } from '../periods.js';
+import { dayHash, goalHash } from '../routes.js';
+import { MIN_QUERY_LENGTH, searchItems } from '../search.js';
 
 const LABEL_TEXT = { mattina: 'Mattina', giorno: 'Giorno', sera: 'Sera' };
 const PAGE = 30;
@@ -73,14 +77,14 @@ async function mountCalendar(db, body, today, ym) {
         { class: 'cal-row', role: 'row' },
         week.map((cell) => {
           if (!cell.inMonth) return h('span', { class: 'cal-day is-blank', role: 'gridcell', 'aria-hidden': 'true' });
-          const n = counts.get(cell.date) ?? 0;
+          const written = counts.get(cell.date); // { entries, modules } solo se quel giorno hai scritto
           return h(
             'a',
             {
-              class: `cal-day${cell.date === today ? ' is-today' : ''}${n ? ' has-entries' : ''}`,
+              class: `cal-day${cell.date === today ? ' is-today' : ''}${written ? ' has-entries' : ''}`,
               role: 'gridcell',
               href: dayHash(cell.date, today),
-              'aria-label': `${formatLong(cell.date)}${n ? `, ${n} ${n === 1 ? 'voce' : 'voci'}` : ''}`,
+              'aria-label': `${formatLong(cell.date)}${written ? `, ${writtenLabel(written, ', ')}` : ''}`,
             },
             h('span', { class: 'cal-num' }, String(Number(cell.date.slice(8)))),
             h('span', { class: 'cal-dot' }),
@@ -114,7 +118,7 @@ async function mountCalendar(db, body, today, ym) {
 
 async function mountHistory(db, body, today) {
   const list = h('div', { class: 'history' });
-  const empty = h('p', { class: 'empty' }, 'Ancora nessuna voce. Quando scrivi, i giorni compaiono qui.');
+  const empty = h('p', { class: 'empty' }, 'Ancora niente di scritto. Quando scrivi, i giorni compaiono qui.');
   const more = h('button', { type: 'button', class: 'btn btn-secondary btn-more', hidden: true, onclick: () => load(PAGE) }, 'Mostra giorni precedenti');
   body.replaceChildren(list, empty, more);
   empty.hidden = true;
@@ -123,14 +127,13 @@ async function mountHistory(db, body, today) {
   async function load(limit) {
     const { days, hasMore } = await listDays(db, { before, limit });
     for (const d of days) {
-      const n = d.entries.length;
       list.append(
         h(
           'a',
           { class: 'day-card', href: dayHash(d.date, today) },
           h('span', { class: 'day-card-date' }, formatLong(d.date)),
-          h('span', { class: 'day-card-meta' }, `${n} ${n === 1 ? 'voce' : 'voci'}`),
-          h('span', { class: 'day-card-preview' }, dayPreview(d.entries)),
+          h('span', { class: 'day-card-meta' }, writtenLabel({ entries: d.entries.length, modules: d.modules.length })),
+          h('span', { class: 'day-card-preview' }, dayPreview(d.entries, 150, d.modules)),
         ),
       );
     }
@@ -147,15 +150,44 @@ async function mountHistory(db, body, today) {
 
 // ---------- ricerca ----------
 
+/**
+ * Tutto ciò in cui si cerca: le voci, quello che hai scritto nei moduli e gli obiettivi (titolo, nota, com'è andata).
+ * Ogni elemento: { text, date, time, title, meta, href }.
+ */
+async function searchableItems(db, today) {
+  const [entries, rows, goals, defs] = await Promise.all([
+    getAll(db, 'entries'),
+    getAll(db, 'moduleInstances'),
+    getAll(db, 'goals'),
+    listAllDefs(db, { includeArchived: true }),
+  ]);
+  const defById = new Map(defs.map((d) => [d.id, d]));
+  const items = [];
+  for (const e of entries) {
+    if (isEmptyEntry(e)) continue;
+    items.push({ text: toPlainText(e.content), date: e.date, time: e.time, title: formatLong(e.date), meta: e.label ? LABEL_TEXT[e.label] : null, href: dayHash(e.date, today) });
+  }
+  for (const row of rows) {
+    const def = defById.get(row.moduleId);
+    const text = def ? dataText(def.type, row.data) : '';
+    if (text) items.push({ text, date: row.date, time: '', title: formatLong(row.date), meta: def.name, href: dayHash(row.date, today) });
+  }
+  for (const g of goals) {
+    const text = [g.title, g.note, g.closure?.reflection].filter(Boolean).join('\n');
+    items.push({ text, date: g.start, time: '', title: periodLabel(g.horizon, g.start), meta: `Obiettivo · ${HORIZON_LABEL[g.horizon].toLowerCase()}`, href: goalHash(g.id) });
+  }
+  return items;
+}
+
 async function mountSearch(db, body, today) {
-  const entries = await getAll(db, 'entries');
+  const items = await searchableItems(db, today);
   const status = h('p', { class: 'hint search-status', role: 'status', 'aria-live': 'polite' });
   const results = h('div', { class: 'results' });
   const input = h('input', {
     type: 'search',
     class: 'search-input',
-    placeholder: 'Cerca nelle tue voci',
-    'aria-label': 'Cerca nelle tue voci',
+    placeholder: 'Cerca nel diario',
+    'aria-label': 'Cerca nel diario: voci, moduli e obiettivi',
     autocomplete: 'off',
     autocapitalize: 'off',
     spellcheck: 'false',
@@ -169,22 +201,22 @@ async function mountSearch(db, body, today) {
     const query = input.value.trim();
     results.replaceChildren();
     if (query.length < MIN_QUERY_LENGTH) {
-      status.textContent = entries.length ? 'Scrivi almeno due lettere. Accenti e maiuscole non contano.' : 'Non c’è ancora nulla da cercare.';
+      status.textContent = items.length ? 'Scrivi almeno due lettere: cerco nelle voci, nei moduli e negli obiettivi. Accenti e maiuscole non contano.' : 'Non c’è ancora nulla da cercare.';
       return;
     }
-    const { results: found, total } = searchEntries(entries, query);
+    const { results: found, total } = searchItems(items, query);
     if (!total) {
       status.textContent = `Nessun risultato per «${query}».`;
       return;
     }
     status.textContent = total === 1 ? '1 risultato' : total > found.length ? `${total} risultati (mostrati i primi ${found.length})` : `${total} risultati`;
-    for (const { entry, parts } of found) {
+    for (const { item, parts } of found) {
       results.append(
         h(
           'a',
-          { class: 'result', href: dayHash(entry.date, today) },
-          h('span', { class: 'day-card-date' }, formatLong(entry.date)),
-          entry.label ? h('span', { class: 'day-card-meta' }, LABEL_TEXT[entry.label]) : null,
+          { class: 'result', href: item.href },
+          h('span', { class: 'day-card-date' }, item.title),
+          item.meta ? h('span', { class: 'day-card-meta' }, item.meta) : null,
           h('span', { class: 'day-card-preview' }, parts.map((p) => (p.match ? h('mark', {}, p.text) : p.text))),
         ),
       );

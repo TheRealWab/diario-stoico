@@ -391,7 +391,7 @@ button { cursor: pointer; }
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
-  border: 1px solid var(--line);
+  border: 1px solid var(--field-line);
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--surface);
@@ -494,7 +494,7 @@ a.cal-day:active { background: var(--line); }
 .check-row input { width: 1.25rem; height: 1.25rem; accent-color: var(--accent-fill); }
 
 /* scelte a scheda (es. «Dove salvarlo» nel backup) */
-.choice { position: relative; display: block; margin-bottom: var(--space-2); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.choice { position: relative; display: block; margin-bottom: var(--space-2); border: 1px solid var(--field-line); border-radius: var(--radius); background: var(--surface); }
 .choice input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
 .choice span { display: block; padding: var(--space-3); }
 .choice strong { display: block; font-weight: 600; }
@@ -508,7 +508,7 @@ a.cal-day:active { background: var(--line); }
   width: 100%;
   min-height: 3rem;
   padding: 0 var(--space-4);
-  border: 1px solid var(--line);
+  border: 1px solid var(--field-line);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
@@ -593,7 +593,7 @@ body.lock-open { overflow: hidden; }
   display: grid;
   place-items: center;
   min-height: 3.75rem;
-  border: 1px solid var(--line);
+  border: 1px solid var(--field-line);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
@@ -685,6 +685,10 @@ body.lock-open { overflow: hidden; }
 .dialog-step { margin: 0 0 var(--space-1); font-size: 0.8125rem; letter-spacing: 0.06em; color: var(--ink-soft); }
 .dialog-goal { margin: 0 0 var(--space-1); font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.35; overflow-wrap: anywhere; }
 .text-area { min-height: 5rem; padding: var(--space-3) var(--space-4); resize: vertical; line-height: 1.5; font-family: inherit; }
+/* il campo si allunga da solo mentre scrivi (dove il browser lo sa fare): la maniglia nell'angolo non serve più */
+@supports (field-sizing: content) {
+  .text-area { field-sizing: content; resize: none; max-height: 60vh; }
+}
 select.text-input { appearance: auto; }
 .outcomes { margin: 0 0 var(--space-3); }
 .outcomes span { font-size: 0.875rem; }
@@ -704,7 +708,7 @@ select.text-input { appearance: auto; }
 .mod-prompt { margin: var(--space-1) 0 var(--space-3); }
 .mod-area { min-height: 4.5rem; }
 .chips { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0 0 var(--space-2); }
-.chip { min-height: var(--tap); padding: 0 var(--space-3); border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink); font: inherit; font-size: 0.9375rem; transition: background var(--dur) var(--ease), color var(--dur) var(--ease); }
+.chip { min-height: var(--tap); padding: 0 var(--space-3); border: 1px solid var(--field-line); border-radius: 999px; background: transparent; color: var(--ink); font: inherit; font-size: 0.9375rem; transition: background var(--dur) var(--ease), color var(--dur) var(--ease); }
 .chip[aria-pressed='true'] { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent); font-weight: 600; }
 .chip:active { transform: scale(0.98); }
 .mod-group { margin: 0 0 var(--space-3); padding: 0; border: 0; min-width: 0; }
@@ -734,7 +738,7 @@ select.text-input { appearance: auto; }
 .mod-mark { display: inline-block; width: 1.5em; color: var(--accent-text); }
 .add-module { display: flex; margin: var(--space-4) auto 0; }
 .pick-list { display: grid; gap: var(--space-2); margin: 0 0 var(--space-3); }
-.pick { display: block; width: 100%; padding: var(--space-3); text-align: left; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); font: inherit; }
+.pick { display: block; width: 100%; padding: var(--space-3); text-align: left; border: 1px solid var(--field-line); border-radius: var(--radius); background: var(--surface); color: var(--ink); font: inherit; }
 .pick strong { display: block; font-weight: 600; }
 .pick small { display: block; margin-top: 2px; font-size: 0.8125rem; color: var(--ink-soft); }
 .pick:active { background: var(--line); }
@@ -760,3 +764,8 @@ select.text-input { appearance: auto; }
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ---------- promemoria del backup (in «Oggi») ---------- */
+.reminder p { font-size: 0.9375rem; }
+.reminder-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.reminder-actions .btn { margin-top: 0; }

@@ -2,6 +2,7 @@
 
 import { applyAppearance } from '../appearance.js';
 import { backupText, buildExport, downloadJson, exportFilename, importData, planMerge, validateImport } from '../backup.js';
+import { takeDataSection } from '../backup-reminder.js';
 import { daysAgoLabel, formatDayMonthYear, todayStr } from '../dates.js';
 import { h, icon, setChildren } from '../dom.js';
 import { getSettings, saveSettings } from '../settings.js';
@@ -23,6 +24,7 @@ const THEME_OPTIONS = [['carta', 'Carta'], ['scuro', 'Scuro'], ['sistema', 'Sist
 const FONT_OPTIONS = [['serif', 'Serif (da libro)'], ['sans', 'Sans (pulito)']];
 const SIZE_OPTIONS = [['s', 'Piccola'], ['m', 'Media'], ['l', 'Grande'], ['xl', 'Molto grande']];
 const SPACING_OPTIONS = [['s', 'Compatta'], ['m', 'Normale'], ['l', 'Ampia'], ['xl', 'Molto ampia']];
+const REMINDER_OPTIONS = [[7, '7'], [14, '14'], [30, '30'], [0, 'Mai']];
 
 let groupCounter = 0;
 
@@ -416,12 +418,14 @@ export async function mountSettings({ db, container }) {
 
     h(
       'section',
-      { class: 'group' },
+      { class: 'group', id: 'dati' },
       h('h2', {}, 'Dati'),
       h('p', { class: 'hint' }, 'Il diario vive solo su questo telefono. Un backup ogni tanto ti protegge se lo perdi o lo cambi.'),
       fileChoiceAvailable() ? h('p', { class: 'hint' }, 'Puoi scegliere dove salvare il backup e, le volte dopo, sostituire quello precedente: resta un solo file, senza doppioni.') : null,
       h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn btn-primary', onclick: doExport }, 'Esporta backup (JSON)'), backupNote),
       h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn btn-secondary', onclick: () => fileInput.click() }, 'Importa da file…'), fileInput),
+      segmented({ legend: 'Ricordami il backup dopo (giorni)', options: REMINDER_OPTIONS, value: settings.backupReminderDays, onChange: (v) => change({ backupReminderDays: v }) }),
+      h('p', { class: 'hint' }, 'Se passa questo tempo senza un backup, in «Oggi» compare un promemoria. Si può rimandare con un tocco.'),
     ),
 
     h(
@@ -436,5 +440,7 @@ export async function mountSettings({ db, container }) {
     ),
   );
   container.replaceChildren(page);
+  // arrivando dal promemoria del backup, la pagina si apre già su «Dati» (dopo che l'app ha sistemato lo scorrimento)
+  if (takeDataSection()) setTimeout(() => page.querySelector('#dati')?.scrollIntoView({ block: 'start' }), 60);
   return { destroy() {} };
 }

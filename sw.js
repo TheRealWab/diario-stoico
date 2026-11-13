@@ -5,7 +5,7 @@
 // IndexedDB e questo file non li tocca mai.
 
 // <precache> (generato da tools/update-sw.mjs: non modificare a mano)
-const CACHE_VERSION = 'e874286930f5';
+const CACHE_VERSION = 'a3d01eb44fa2';
 const PRECACHE = [
   "css/app.css",
   "css/theme.css",
@@ -23,6 +23,7 @@ const PRECACHE = [
   "js/archive.js",
   "js/autosave.js",
   "js/b64.js",
+  "js/backup-reminder.js",
   "js/backup.js",
   "js/boot.js",
   "js/calendar.js",

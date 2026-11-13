@@ -1,4 +1,4 @@
-// Ricerca per parola nel testo delle voci. Ignora maiuscole e accenti ("perche" trova "perché").
+// Ricerca per parola in quello che hai scritto (voci, moduli, obiettivi). Ignora maiuscole e accenti ("perche" trova "perché").
 // Solo calcoli sul testo: nessun accesso alla pagina.
 
 import { toPlainText } from './markdown.js';
@@ -92,21 +92,26 @@ export function snippet(text, tokens, radius = 70) {
 }
 
 /**
- * Cerca nelle voci. Restituisce { entry, parts }, dalla più recente.
- * Una voce risulta se contiene TUTTE le parole (in qualunque ordine).
+ * Cerca in un elenco di testi: [{ text, date, time? , … }] (voci, moduli, obiettivi: vedi views/archive.js).
+ * Un elemento risulta se contiene TUTTE le parole (in qualunque ordine). Restituisce { item, parts }, dal più recente.
  */
-export function searchEntries(entries, query, { limit = 100 } = {}) {
+export function searchItems(items, query, { limit = 100 } = {}) {
   const tokens = tokenize(query);
   if (!tokens.length || query.trim().length < MIN_QUERY_LENGTH) {
     return { results: [], total: 0, tokens };
   }
-  const found = [];
-  for (const entry of entries) {
-    const plain = toPlainText(entry.content);
-    const norm = normalize(plain);
-    if (tokens.every((t) => norm.includes(t))) found.push({ entry, plain });
-  }
-  found.sort((a, b) => b.entry.date.localeCompare(a.entry.date) || b.entry.time.localeCompare(a.entry.time));
-  const results = found.slice(0, limit).map(({ entry, plain }) => ({ entry, parts: snippet(plain, tokens) }));
+  const found = items.filter((item) => {
+    const norm = normalize(item.text);
+    return tokens.every((t) => norm.includes(t));
+  });
+  found.sort((a, b) => b.date.localeCompare(a.date) || (b.time ?? '').localeCompare(a.time ?? ''));
+  const results = found.slice(0, limit).map((item) => ({ item, parts: snippet(item.text, tokens) }));
   return { results, total: found.length, tokens };
+}
+
+/** Cerca nelle voci. Restituisce { entry, parts }, dalla più recente. */
+export function searchEntries(entries, query, options) {
+  const items = entries.map((entry) => ({ entry, text: toPlainText(entry.content), date: entry.date, time: entry.time }));
+  const { results, total, tokens } = searchItems(items, query, options);
+  return { results: results.map(({ item, parts }) => ({ entry: item.entry, parts })), total, tokens };
 }

@@ -59,7 +59,8 @@
   --surface: #fbf8f1;
   --ink: #2b2a28;
   --ink-soft: #5e584e;
-  --line: #ddd3c0;
+  --line: #ddd3c0; /* bordi dei riquadri e righe di separazione */
+  --field-line: #958a77; /* bordo di ciò che si tocca o in cui si scrive: più marcato (contrasto 3 a 1 con lo sfondo) */
   --accent: #b5573a; /* per segni e linee */
   --accent-text: #9e4529; /* per il testo: contrasto più alto */
   --accent-fill: #a24a2e; /* sfondo dei pulsanti pieni */
@@ -76,7 +77,8 @@
   --surface: #0f0e0d;
   --ink: #e9e1d3;
   --ink-soft: #a8a092;
-  --line: #2b2825;
+  --line: #3a3531;
+  --field-line: #6b645a;
   --accent: #d98b6c;
   --accent-text: #e29a7e;
   --accent-fill: #d98b6c;

@@ -3,6 +3,19 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 4.4 — 13 novembre 2026
+- **Voci vuote:** toccare «Nuova voce» e poi non scrivere non lascia più una voce vuota. Prima quel giorno prendeva il puntino nel calendario
+  e in Cronologia compariva «1 voce» senza testo. Le voci vuote rimaste da prima spariscono da sole alla prossima apertura di quel giorno.
+- **L'Archivio vede anche i moduli:** un giorno in cui hai compilato solo un modulo (l'esame serale, la premeditatio…) ora ha il puntino e compare
+  in Cronologia, con la sua anteprima. La **ricerca** cerca anche in quello che scrivi nei moduli e negli obiettivi (titolo, nota, com'è andata).
+- **Promemoria del backup:** se passano 14 giorni senza un backup, in «Oggi» compare un riquadro sobrio con «Fai il backup» e «Non ora»
+  (tace per tre giorni). In *Impostazioni → Dati* scegli 7, 14 o 30 giorni, oppure «Mai».
+- **«Annulla» al posto di «Sei sicuro?»:** eliminando una voce o nascondendo un modulo compare per qualche secondo «Annulla», che rimette tutto com'era.
+  Gli avvisi lunghi restano più a lungo, il tempo di leggerli.
+- **I campi dei moduli si allungano da soli** mentre scrivi (niente più maniglia nell'angolo).
+- **Bordi più visibili**, soprattutto nel tema scuro: campi di testo, scelte e selettori ora si distinguono bene dallo sfondo.
+- Nessuna migrazione del database: i dati restano come sono.
+
 ## 4.3 — 23 ottobre 2026
 - **Nuova icona:** il filosofo che scrive nel diario, in bianco e nero come una xilografia (disegno in `tools/filosofo.png`),
   nei colori dell'app: inchiostro scuro su carta crema.

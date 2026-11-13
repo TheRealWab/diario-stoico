@@ -57,8 +57,14 @@ export function messageDialog({ title, text, items = [] }) {
 let toastEl = null;
 let toastTimer = null;
 
-/** Avviso discreto in basso. Con `action` resta finché non lo si usa o lo si chiude. */
-export function toast(message, { actionLabel, onAction, sticky = false } = {}) {
+/** Quanto resta un avviso senza pulsante: almeno 4 secondi, di più se il testo è lungo (il tempo di leggerlo). */
+export const toastTime = (message) => Math.max(4000, Math.min(9000, String(message).length * 60));
+
+/**
+ * Avviso discreto in basso. Con `actionLabel` resta finché non lo si usa o lo si chiude, a meno di dare una durata
+ * (`duration`, in millisecondi): è il caso di «Annulla», che ha senso solo per qualche secondo.
+ */
+export function toast(message, { actionLabel, onAction, sticky = false, duration = null } = {}) {
   if (!toastEl) {
     toastEl = h('div', { class: 'toast', role: 'status', 'aria-live': 'polite' });
     document.body.append(toastEl);
@@ -74,7 +80,8 @@ export function toast(message, { actionLabel, onAction, sticky = false } = {}) {
     ].filter(Boolean),
   );
   toastEl.classList.add('is-visible');
-  if (!sticky && !actionLabel) toastTimer = setTimeout(hideToast, 4000);
+  if (duration) toastTimer = setTimeout(hideToast, duration);
+  else if (!sticky && !actionLabel) toastTimer = setTimeout(hideToast, toastTime(message));
 
   function hide() {
     toastEl.classList.remove('is-visible');

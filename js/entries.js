@@ -2,6 +2,7 @@
 
 import { getAllByIndex, put, remove, update } from './db.js';
 import { isValidDateStr, isValidTimeStr } from './dates.js';
+import { parse } from './markdown.js';
 import { nowIso, uuid } from './util.js';
 
 export const LABELS = ['mattina', 'giorno', 'sera']; // l'assenza di etichetta è null
@@ -27,6 +28,12 @@ export async function createEntry(db, { date, time, label = null, content = '' }
   const entry = { id: uuid(), date, time, label, content, createdAt: stamp, updatedAt: stamp };
   return put(db, 'entries', entry);
 }
+
+/**
+ * Una voce senza niente di scritto (per esempio: «Nuova voce» toccato e poi lasciato lì). Non conta come scritta:
+ * non segna il giorno nell'archivio e viene tolta alla prima occasione (vedi views/today.js).
+ */
+export const isEmptyEntry = (entry) => parse(entry.content).length === 0;
 
 const partOfDay = (e) => LABELS.indexOf(e.label ?? defaultLabel(e.time));
 
@@ -56,4 +63,9 @@ export async function updateEntry(db, id, patch, now = new Date()) {
 
 export function deleteEntry(db, id) {
   return remove(db, 'entries', id);
+}
+
+/** Rimette una voce appena eliminata, identica a prima (per «Annulla»). */
+export function restoreEntry(db, entry) {
+  return put(db, 'entries', entry);
 }

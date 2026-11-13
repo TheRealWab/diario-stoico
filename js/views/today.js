@@ -1,14 +1,21 @@
 // Pagina "Oggi" (e, con le frecce, qualsiasi altro giorno).
 
+import { firstWrittenDate } from '../archive.js';
 import { createSaver } from '../autosave.js';
-import { timeStr } from '../dates.js';
+import { askDataSection, backupReminder, reminderText, snoozeUntil } from '../backup-reminder.js';
+import { timeStr, todayStr } from '../dates.js';
 import { h, icon, setChildren } from '../dom.js';
 import { createEditor } from '../editor.js';
-import { LABELS, compareEntries, createEntry, defaultLabel, deleteEntry, listEntriesForDay, updateEntry } from '../entries.js';
+import { get } from '../db.js';
+import { LABELS, compareEntries, createEntry, defaultLabel, deleteEntry, isEmptyEntry, listEntriesForDay, restoreEntry, updateEntry } from '../entries.js';
 import { pickModuleDialog } from '../moduledialogs.js';
+import { NO_DATA_TYPES } from '../modules-catalog.js';
 import { setVisibleForDay } from '../modules.js';
 import { go } from '../navigation.js';
-import { confirmDialog, toast } from '../ui.js';
+import { getSettings, saveSettings } from '../settings.js';
+import { toast } from '../ui.js';
+
+const UNDO_TIME = 8000; // quanto resta «Annulla» dopo aver eliminato una voce o nascosto un modulo
 import { loadDayModules } from './daymodules.js';
 import { dayHead, dayLinks } from './dayhead.js';
 import { moduleCard } from './modulecard.js';
@@ -51,7 +58,20 @@ export async function mountToday({ db, container, date }) {
     try {
       await setVisibleForDay(db, date, def.id, false, ctx.enabled);
       await renderModules();
-      toast(`«${def.name}» nascosto per questo giorno. Quello che hai scritto resta salvato: lo ritrovi con «Aggiungi modulo».`);
+      const keeps = NO_DATA_TYPES.includes(def.type) ? '' : ' Quello che hai scritto resta salvato.';
+      toast(`«${def.name}» nascosto per questo giorno.${keeps}`, {
+        actionLabel: 'Annulla',
+        duration: UNDO_TIME,
+        onAction: async () => {
+          try {
+            await setVisibleForDay(db, date, def.id, true, ctx.enabled);
+            await renderModules();
+          } catch (err) {
+            console.error(err);
+            toast('Non riesco a rimettere il modulo: lo ritrovi con «Aggiungi modulo».');
+          }
+        },
+      });
     } catch (err) {
       console.error(err);
       toast('Non riesco a nascondere il modulo.');
@@ -72,9 +92,37 @@ export async function mountToday({ db, container, date }) {
     }
   }
 
-  const [entries] = await Promise.all([entriesLoad, renderModules()]);
+  // ----- promemoria del backup: solo nella pagina di oggi, e solo se è passato il tempo scelto nelle impostazioni -----
+  async function buildBackupReminder() {
+    if (date !== todayStr()) return null;
+    try {
+      const [settings, firstDate] = await Promise.all([getSettings(db), firstWrittenDate(db)]);
+      const due = backupReminder({ settings, today: date, firstDate });
+      if (!due) return null;
+      const box = h(
+        'aside',
+        { class: 'notice reminder', 'aria-label': 'Promemoria del backup' },
+        h('p', {}, reminderText(due)),
+        h(
+          'div',
+          { class: 'reminder-actions' },
+          h('button', { type: 'button', class: 'btn btn-secondary', onclick: () => { askDataSection(); go('#/impostazioni', 'tab'); } }, 'Fai il backup'),
+          h('button', { type: 'button', class: 'link-button', onclick: () => { box.remove(); saveSettings(db, { backupSnoozeUntil: snoozeUntil(date) }).catch((err) => console.warn('Promemoria non rimandato:', err)); } }, 'Non ora'),
+        ),
+      );
+      return box;
+    } catch (err) {
+      console.warn('Promemoria del backup non disponibile:', err);
+      return null;
+    }
+  }
 
-  const page = h('section', { class: 'page day' }, dayHead(date), dayLinks(date), topModules, list, empty, addBtn, bottomModules, addModuleBtn);
+  const [loaded, , reminder] = await Promise.all([entriesLoad, renderModules(), buildBackupReminder()]);
+  // le voci rimaste vuote (un «Nuova voce» toccato e lasciato lì) non si mostrano e si tolgono
+  const entries = loaded.filter((e) => !isEmptyEntry(e));
+  for (const e of loaded) if (isEmptyEntry(e)) deleteEntry(db, e.id).catch((err) => console.warn('Voce vuota non tolta:', err));
+
+  const page = h('section', { class: 'page day' }, dayHead(date), dayLinks(date), reminder, topModules, list, empty, addBtn, bottomModules, addModuleBtn);
   container.replaceChildren(page);
 
   entries.forEach(insertEntry);
@@ -159,21 +207,33 @@ export async function mountToday({ db, container, date }) {
     }
   }
 
+  // Niente domanda «sei sicuro?»: la voce si toglie subito e per qualche secondo si può rimettere con «Annulla».
   async function removeEntry(id) {
     const view = views.get(id);
-    const ok = await confirmDialog({
-      title: 'Eliminare questa voce?',
-      text: 'La voce verrà cancellata per sempre. Non si può annullare.',
-      confirmLabel: 'Elimina',
-      danger: true,
-    });
-    if (!ok) return;
     try {
       await view.saver.close();
+      const saved = await get(db, 'entries', id); // com'è adesso, per poterla rimettere identica
       await deleteEntry(db, id);
       view.root.remove();
       views.delete(id);
       refreshEmpty();
+      if (!saved || isEmptyEntry(saved)) return; // una voce vuota: niente da rimettere
+      toast('Voce eliminata.', {
+        actionLabel: 'Annulla',
+        duration: UNDO_TIME,
+        onAction: async () => {
+          try {
+            await restoreEntry(db, saved);
+            if (page.isConnected) {
+              insertEntry(saved);
+              refreshEmpty();
+            }
+          } catch (err) {
+            console.error(err);
+            toast('Non riesco a rimettere la voce.');
+          }
+        },
+      });
     } catch (err) {
       console.error(err);
       toast('Non riesco a eliminare la voce.');
@@ -184,6 +244,10 @@ export async function mountToday({ db, container, date }) {
     async destroy() {
       await Promise.all([...views.values()].map((v) => v.saver.close()));
       await Promise.all([...cards].map((c) => c.saver?.close()));
+      // uscendo dalla pagina, le voci in cui non è stato scritto niente si tolgono: non contano come scritte
+      await Promise.all(
+        [...views.values()].filter((v) => isEmptyEntry({ content: v.editor.getMarkdown() })).map((v) => deleteEntry(db, v.entry.id).catch(() => {})),
+      );
     },
   };
 }
