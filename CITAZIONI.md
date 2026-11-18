@@ -1,8 +1,14 @@
 # Le frasi del giorno: da dove vengono
 
-Sono **366 frasi**, una per ogni giorno dell'anno (anche bisestile). Nessuna è scritta da me: ognuna è **copiata alla lettera**
-da un testo antico, in una **traduzione italiana libera da diritti** (le traduzioni sono state pubblicate su
-[Wikisource in italiano](https://it.wikisource.org)), e controllata parola per parola con quel testo.
+Sono **366 frasi**, una per ogni giorno dell'anno (anche bisestile). Ognuna parte da un testo antico **copiato alla lettera**
+da una **traduzione italiana libera da diritti** (le traduzioni sono state pubblicate su
+[Wikisource in italiano](https://it.wikisource.org)) e controllato parola per parola con quel testo. È quello elencato qui sotto.
+
+**Nell'app si legge un'altra versione: lo stesso pensiero in italiano di oggi** (dalla versione 4.6, per scelta dell'utente: le traduzioni
+dell'Ottocento e del Cinquecento erano troppo difficili da leggere). È riscritta per essere capita al primo colpo, senza aggiungere né
+togliere idee; nei detti che senza la scena non si capiscono (a chi parlava, che cosa era successo) la scena è detta in poche parole, come la
+racconta Diogene Laerzio. Le due versioni stanno insieme in `js/citazioni.js` (`t` alla lettera, `m` in italiano di oggi).
+Nell'app compaiono autore e opera, non il traduttore, perché le parole che si leggono non sono più le sue.
 
 Come si controlla: per ogni frase qui sotto c'è la **pagina di Wikisource** dove ritrovarla (basta cercarla con «cerca nella pagina»).
 

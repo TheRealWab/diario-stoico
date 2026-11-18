@@ -49,15 +49,36 @@ test('frase del giorno: in 366 giorni si usano tutte le frasi, una sola volta', 
   assert.ok(quoteForDate('2025-12-31').text);
 });
 
-test('frasi: alcune frasi note sono presenti alla lettera, con la fonte giusta', () => {
-  const find = (text) => QUOTES.find((q) => q.text === text);
+test('frasi: il testo alla lettera c’è ancora, per riferimento, con la fonte giusta', () => {
+  const find = (original) => QUOTES.find((q) => q.original === original);
   assert.equal(find('Ricevi senza boria, lascia senza riluttanza.')?.source, 'Ricordi, VIII, 33');
   assert.equal(find('Gli uomini sono agitati e turbati, non dalle cose, ma dalle opinioni ch’eglino hanno delle cose.')?.source, 'Manuale, 5');
   assert.equal(find('Ogni cosa ha, per maniera di dire, due manichi: a pigliarla dall’uno, ella si sopporta, dall’altro no.')?.author, 'Epitteto');
-});
-
-test('frasi: gli estratti da metà periodo sono segnati', () => {
+  assert.equal(new Set(QUOTES.map((q) => q.original)).size, 366);
   const estratti = QUOTES.filter((q) => q.excerpt);
   assert.ok(estratti.length > 0 && estratti.length < 150);
-  assert.ok(estratti.every((q) => /^[A-ZÀ-Ý«"“‘]/.test(q.text) || /^\p{Lu}/u.test(q.text)), 'un estratto comincia con la maiuscola');
+});
+
+test('frasi in italiano di oggi: si legge quella, accanto a ogni testo antico', () => {
+  for (const q of CITAZIONI) assert.ok(typeof q.m === 'string' && q.m, `manca la versione di oggi: ${q.t}`); // uguale al testo antico se era già chiaro
+  assert.equal(quoteForDate('2026-11-18').text, CITAZIONI.find((c) => c.t === quoteForDate('2026-11-18').original).m);
+  const find = (original) => QUOTES.find((q) => q.original === original)?.text;
+  assert.equal(find('Ricevi senza boria, lascia senza riluttanza.'), 'Ricevi senza superbia, lascia andare senza resistere.');
+  assert.equal(find('Gli uomini sono agitati e turbati, non dalle cose, ma dalle opinioni ch’eglino hanno delle cose.'), 'Gli uomini sono turbati non dalle cose, ma dalle opinioni che hanno delle cose.');
+});
+
+test('frasi in italiano di oggi: forma pulita e niente parole antiche', () => {
+  // parole che nelle traduzioni antiche rendono le frasi difficili: nella versione di oggi non devono comparire
+  const ANTICHE = /\b(nè|perocch[eé]|imperocch[eé]|imperciocch[eé]|perciocch[eé]|conciossiach[eé]|sovvengati|cotal[ei]?|eglino|elleno|ella|egli|esso|dovemo|havvi|avvi|bee|déi|dée|uopo|mestieri|chicchessia|qualsivoglia|allorchè|allorquando|giammai|niuno|veruna?|alcuno|pecunia|cupido|acciocch[eé]|guisa|sibbene|eziandio|onde|vituperevole|scemare|ponno|fussero?|lassi|anco|anzichè)\b/i;
+  for (const q of CITAZIONI) {
+    assert.ok(!ANTICHE.test(q.m), `parola antica «${q.m.match(ANTICHE)?.[0]}»: ${q.m}`);
+    assert.ok(!q.m.includes("'"), `apostrofo dritto: ${q.m}`);
+    assert.ok(!/\s{2,}|\n/.test(q.m), `spazi doppi: ${q.m}`);
+    assert.ok(!/[áíú]|\bpoichè|\bperchè|\bsè\b/i.test(q.m), `accento sbagliato: ${q.m}`);
+    assert.ok(/^[A-ZÀ-Ý«]/.test(q.m), `comincia con la minuscola: ${q.m}`);
+    assert.ok(/[.?!»]$/.test(q.m), `senza punto finale: ${q.m}`);
+    assert.equal((q.m.match(/«/g) ?? []).length, (q.m.match(/»/g) ?? []).length, `virgolette non chiuse: ${q.m}`);
+    // non molto più lunga dell'originale: si spiega la scena, non si aggiunge un commento
+    assert.ok(q.m.length <= q.t.length * 1.6 + 70, `troppo lunga rispetto all’originale: ${q.m}`);
+  }
 });

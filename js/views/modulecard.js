@@ -52,7 +52,7 @@ export function moduleCard({ db, def, date, instance, readOnly = false, onHide, 
       'blockquote',
       { class: 'mod-quote' },
       h('p', {}, q.text),
-      h('cite', {}, h('strong', {}, q.author), h('span', {}, `${q.source} · trad. di ${q.translation}`)),
+      h('cite', {}, h('strong', {}, q.author), h('span', {}, q.source)),
     );
   } else {
     body = buildBody({

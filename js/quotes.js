@@ -1,12 +1,12 @@
 // La frase del giorno, in cima a «Oggi».
-// I dati stanno in citazioni.js: frasi alla lettera da testi antichi in traduzioni libere da diritti, con autore e fonte.
+// I dati stanno in citazioni.js: ogni frase in italiano di oggi (quella che si legge) e il testo alla lettera da cui viene.
 
 import { CITAZIONI } from './citazioni.js';
 import { daysBetween } from './dates.js';
 
-/** { text, author, source, translation, excerpt } */
+/** { text (italiano di oggi), author, source, original (alla lettera), translation, excerpt } */
 export const QUOTES = Object.freeze(
-  CITAZIONI.map((q) => Object.freeze({ text: q.t, author: q.a, source: q.f, translation: q.tr, excerpt: q.e === 1 })),
+  CITAZIONI.map((q) => Object.freeze({ text: q.m, author: q.a, source: q.f, original: q.t, translation: q.tr, excerpt: q.e === 1 })),
 );
 
 /**

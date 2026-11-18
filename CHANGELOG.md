@@ -3,6 +3,17 @@
 La versione si vede in *Impostazioni → Informazioni*. Gli aggiornamenti piccoli fanno 1.1, 1.2, 1.3…;
 quelli grandi (di solito una nuova fase) fanno il salto: 2.0, 3.0…
 
+## 4.6 — 18 novembre 2026
+- **Frase del giorno in italiano di oggi:** le traduzioni antiche (Cinquecento e Ottocento) erano troppo difficili da leggere. Ora tutte le 366
+  frasi sono riscritte in italiano corrente, con lo stesso pensiero, senza aggiungere né togliere idee. Esempio, Epitteto: prima «Qualora alcuno
+  o con parole o con fatti ti offende, sovvengati che egli opera…», ora «Quando qualcuno ti offende, con le parole o con i fatti, ricordati che lo fa
+  perché pensa che sia giusto farlo».
+- Nei detti che senza la scena non si capirebbero, la scena è detta in poche parole (per esempio: «Vedendo un bambino bere con le mani, buttò via
+  la sua ciotola…»).
+- Sotto la frase compaiono autore e opera; non più il traduttore, perché le parole sono cambiate. Il testo antico alla lettera resta nei dati
+  dell'app come riferimento (vedi `CITAZIONI.md`).
+- Nessuna migrazione del database.
+
 ## 4.5 — 13 novembre 2026
 - **Moduli richiudibili:** nella pagina del giorno ogni modulo (anche la frase del giorno e gli obiettivi) si apre e si chiude toccando il titolo,
   e resta come lo lasci, anche nei giorni dopo. Chiuso mostra il titolo e, in una riga, quello che hai scritto (per esempio «Bene · energia media»).

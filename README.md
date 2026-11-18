@@ -56,10 +56,10 @@ vale quanto quattro moduli e non esiste una giornata «incompleta». Niente punt
 - **Nascondere o archiviare non cancella mai niente:** se riattivi un modulo ritrovi quello che avevi scritto. Un modulo tuo si **archivia**
   (non si elimina): sparisce dalle liste, i dati restano nel diario e nel backup, e nei giorni passati si continuano a leggere.
 - I moduli appartengono alla **giornata** (non alla singola voce): un solo esame serale, una sola premeditatio per giorno.
-- **Frase del giorno** (in cima a «Oggi», accesa di base; si spegne dalle Impostazioni): **366 frasi, tutte alla lettera**, mai riscritte da me,
-  di Marco Aurelio, Epitteto, Seneca, Platone, Cicerone, Epicuro e dei detti di Socrate, Zenone, Cleante, Diogene, Aristotele e altri. Ogni frase è copiata
-  da un testo antico in una **traduzione italiana libera da diritti** ed è controllata parola per parola; compaiono autore, opera e traduttore.
-  Solo la forma è ritoccata (accenti: *cosí → così*): vedi `CITAZIONI.md`, che per ogni frase indica la pagina dove verificarla.
+- **Frase del giorno** (in cima a «Oggi», accesa di base; si spegne dalle Impostazioni): **366 frasi** di Marco Aurelio, Epitteto, Seneca,
+  Platone, Cicerone, Epicuro e dei detti di Socrate, Zenone, Cleante, Diogene, Aristotele e altri, **in italiano di oggi**, con autore e opera.
+  Ognuna parte da un testo antico copiato alla lettera da una **traduzione italiana libera da diritti** e controllato parola per parola; quel testo
+  resta nei dati come riferimento (`CITAZIONI.md` indica per ogni frase la pagina dove verificarlo).
   La frase dipende solo dalla data: è la stessa per tutto il giorno e non si ripete in 366 giorni (`js/quotes.js`, dati in `js/citazioni.js`).
 - I dati dei moduli entrano nei backup (anche cifrati) e vengono controllati all'importazione. Nessuna migrazione del database.
 

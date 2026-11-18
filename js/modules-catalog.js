@@ -9,7 +9,7 @@ export const BUILTIN_MODULES = Object.freeze([
   {
     id: 'quote',
     name: 'Frase del giorno',
-    blurb: 'Una frase al giorno, di un filosofo antico, per cominciare: con autore e fonte.',
+    blurb: 'Una frase al giorno di un filosofo antico, in italiano di oggi, per cominciare: con autore e opera.',
     type: 'quote',
     slot: 'top',
   },
